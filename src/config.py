@@ -10,7 +10,7 @@ and default values.
 
 Nothing in this file should depend on any other project modules.
 
-Author: Joseph Eu-Oswald
+Author: Joseph Wu-Oswald
 Project: SafeCross AI
 """
 
