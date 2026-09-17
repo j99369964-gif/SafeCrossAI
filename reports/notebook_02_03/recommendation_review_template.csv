@@ -1,0 +1,5 @@
+model_signal,what_the_model_supports,what_requires_external_evidence
+High recent crash history,The location shows persistent reported-crash activity.,Which intervention addresses the relevant crash types.
+High intersection complexity,Complexity is associated with the model output.,Whether geometry caused the observed crashes.
+Weather dependence,The risk ranking changes with historical weather context.,Whether weather-responsive operations would reduce risk.
+Coordinate dependence,The model detects persistent spatial patterns.,Why the pattern exists and what should change.

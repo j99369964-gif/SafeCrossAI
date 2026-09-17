@@ -1,0 +1,10 @@
+{
+  "python_version": "3.12.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "pandas_version": "3.0.5",
+  "demo_week": "2024-12-16",
+  "demo_row_count": 4466,
+  "demo_column_count": 25,
+  "max_demo_rows": 5000,
+  "selected_model": "lightgbm"
+}

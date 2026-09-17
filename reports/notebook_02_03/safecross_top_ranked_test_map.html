@@ -1,0 +1,3501 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_2a46f8b4e62233a050a1e91596f50036 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_2a46f8b4e62233a050a1e91596f50036" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_2a46f8b4e62233a050a1e91596f50036 = L.map(
+                "map_2a46f8b4e62233a050a1e91596f50036",
+                {
+                    center: [40.7587084, -73.98514019999999],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_12ac116053b0ad916ca3824d9b3e82c2 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_12ac116053b0ad916ca3824d9b3e82c2.addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+            var marker_7f7281699e853fe6cef2537c9575a3e7 = L.marker(
+                [40.8027638, -73.9335768],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f8c6726668c759ff3e71184bd5f35a36 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_477b4aa3e35783e61f68c324836377ee = $(`<div id="html_477b4aa3e35783e61f68c324836377ee" style="width: 100.0%; height: 100.0%;">Node: 42443116<br>Week: 2024-12-02<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_f8c6726668c759ff3e71184bd5f35a36.setContent(html_477b4aa3e35783e61f68c324836377ee);
+            
+        
+
+        marker_7f7281699e853fe6cef2537c9575a3e7.bindPopup(popup_f8c6726668c759ff3e71184bd5f35a36)
+        ;
+
+        
+    
+    
+            marker_7f7281699e853fe6cef2537c9575a3e7.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_7bd87263817c8e24a40994b66a8f9824 = L.marker(
+                [40.7619764, -74.0010599],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_205cf97259919ab95c8bcfdcb44bed03 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_55a1f0d6aba1fddd790c08cd9d99b752 = $(`<div id="html_55a1f0d6aba1fddd790c08cd9d99b752" style="width: 100.0%; height: 100.0%;">Node: 62915549<br>Week: 2024-10-28<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_205cf97259919ab95c8bcfdcb44bed03.setContent(html_55a1f0d6aba1fddd790c08cd9d99b752);
+            
+        
+
+        marker_7bd87263817c8e24a40994b66a8f9824.bindPopup(popup_205cf97259919ab95c8bcfdcb44bed03)
+        ;
+
+        
+    
+    
+            marker_7bd87263817c8e24a40994b66a8f9824.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_921151dcbe6ae6546b4d03bbc20891f7 = L.marker(
+                [40.8034339, -73.9330811],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_8288efa2214764879a7596078671d3fa = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_27f271be6e8f97629c7cef7bb1d157fd = $(`<div id="html_27f271be6e8f97629c7cef7bb1d157fd" style="width: 100.0%; height: 100.0%;">Node: 42434134<br>Week: 2024-11-11<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_8288efa2214764879a7596078671d3fa.setContent(html_27f271be6e8f97629c7cef7bb1d157fd);
+            
+        
+
+        marker_921151dcbe6ae6546b4d03bbc20891f7.bindPopup(popup_8288efa2214764879a7596078671d3fa)
+        ;
+
+        
+    
+    
+            marker_921151dcbe6ae6546b4d03bbc20891f7.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_68aec6c67f14e122fe246f7c6dc513da = L.marker(
+                [40.7832515, -73.9447201],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_4e1ce79a69a218b3dbc862916c47bdba = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_0d10fdce3a57abfb9f901f09b38bc0e3 = $(`<div id="html_0d10fdce3a57abfb9f901f09b38bc0e3" style="width: 100.0%; height: 100.0%;">Node: 4779073679<br>Week: 2024-11-04<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 5<br>Outcome: false_positive</div>`)[0];
+                popup_4e1ce79a69a218b3dbc862916c47bdba.setContent(html_0d10fdce3a57abfb9f901f09b38bc0e3);
+            
+        
+
+        marker_68aec6c67f14e122fe246f7c6dc513da.bindPopup(popup_4e1ce79a69a218b3dbc862916c47bdba)
+        ;
+
+        
+    
+    
+            marker_68aec6c67f14e122fe246f7c6dc513da.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2afecdadbd020bdf1d76812d5f0bf1b3 = L.marker(
+                [40.7180188, -73.9999527],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_1fd22b9fde8f2d6a610a19a13a00d88e = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_83e423188f45e241c88f008bf4992ce8 = $(`<div id="html_83e423188f45e241c88f008bf4992ce8" style="width: 100.0%; height: 100.0%;">Node: 42427316<br>Week: 2024-12-02<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_1fd22b9fde8f2d6a610a19a13a00d88e.setContent(html_83e423188f45e241c88f008bf4992ce8);
+            
+        
+
+        marker_2afecdadbd020bdf1d76812d5f0bf1b3.bindPopup(popup_1fd22b9fde8f2d6a610a19a13a00d88e)
+        ;
+
+        
+    
+    
+            marker_2afecdadbd020bdf1d76812d5f0bf1b3.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a0c6c4741d07cfe00f0f775bc984ed42 = L.marker(
+                [40.7963136, -73.9382919],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_27ab8fd6eba7f75d259b2787954aab9d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_6ea4b3bd90ce60c91ff48f80ae159c74 = $(`<div id="html_6ea4b3bd90ce60c91ff48f80ae159c74" style="width: 100.0%; height: 100.0%;">Node: 4207962275<br>Week: 2024-10-28<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_27ab8fd6eba7f75d259b2787954aab9d.setContent(html_6ea4b3bd90ce60c91ff48f80ae159c74);
+            
+        
+
+        marker_a0c6c4741d07cfe00f0f775bc984ed42.bindPopup(popup_27ab8fd6eba7f75d259b2787954aab9d)
+        ;
+
+        
+    
+    
+            marker_a0c6c4741d07cfe00f0f775bc984ed42.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f4426b23c974f1267faa61e46fb3c8ef = L.marker(
+                [40.7979386, -73.9400272],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_d468b60e48646c0d4618cb14d2cbbbfd = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_22d0098cb98e4746b852616011ff5d9a = $(`<div id="html_22d0098cb98e4746b852616011ff5d9a" style="width: 100.0%; height: 100.0%;">Node: 42450071<br>Week: 2024-12-02<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_d468b60e48646c0d4618cb14d2cbbbfd.setContent(html_22d0098cb98e4746b852616011ff5d9a);
+            
+        
+
+        marker_f4426b23c974f1267faa61e46fb3c8ef.bindPopup(popup_d468b60e48646c0d4618cb14d2cbbbfd)
+        ;
+
+        
+    
+    
+            marker_f4426b23c974f1267faa61e46fb3c8ef.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c6946eb9dd14d98ac771009df8c7130e = L.marker(
+                [40.7165497, -73.9969875],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_889632feffdd3d7dcc1df21a2e378382 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_12e628de81548704a2dd168b795e7664 = $(`<div id="html_12e628de81548704a2dd168b795e7664" style="width: 100.0%; height: 100.0%;">Node: 42440804<br>Week: 2024-11-18<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 5<br>Outcome: false_positive</div>`)[0];
+                popup_889632feffdd3d7dcc1df21a2e378382.setContent(html_12e628de81548704a2dd168b795e7664);
+            
+        
+
+        marker_c6946eb9dd14d98ac771009df8c7130e.bindPopup(popup_889632feffdd3d7dcc1df21a2e378382)
+        ;
+
+        
+    
+    
+            marker_c6946eb9dd14d98ac771009df8c7130e.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_badb22a27a07712ca5cdb1bf28c83cce = L.marker(
+                [40.7534078, -73.9963175],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_d1e56efdfea6093435bff450b9a70c15 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fb72d7b6586cb6efa3142b4f42a447ad = $(`<div id="html_fb72d7b6586cb6efa3142b4f42a447ad" style="width: 100.0%; height: 100.0%;">Node: 42437663<br>Week: 2024-10-28<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_d1e56efdfea6093435bff450b9a70c15.setContent(html_fb72d7b6586cb6efa3142b4f42a447ad);
+            
+        
+
+        marker_badb22a27a07712ca5cdb1bf28c83cce.bindPopup(popup_d1e56efdfea6093435bff450b9a70c15)
+        ;
+
+        
+    
+    
+            marker_badb22a27a07712ca5cdb1bf28c83cce.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e71f6261c7deeecdfe6c55f3df54c0b0 = L.marker(
+                [40.7647981, -73.9842688],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f9784682c4ce2b51dee70ac9bc4bfa9a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_5321995c3c0979723f84062096cde63f = $(`<div id="html_5321995c3c0979723f84062096cde63f" style="width: 100.0%; height: 100.0%;">Node: 42435707<br>Week: 2024-10-28<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_f9784682c4ce2b51dee70ac9bc4bfa9a.setContent(html_5321995c3c0979723f84062096cde63f);
+            
+        
+
+        marker_e71f6261c7deeecdfe6c55f3df54c0b0.bindPopup(popup_f9784682c4ce2b51dee70ac9bc4bfa9a)
+        ;
+
+        
+    
+    
+            marker_e71f6261c7deeecdfe6c55f3df54c0b0.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_deba1326858bca88411922a3c8219b1c = L.marker(
+                [40.7510092, -73.9906121],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f6d365352a5e42ecf2364f6d0d2de9ac = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_6a9e32e8177decee89ac18f628d55edb = $(`<div id="html_6a9e32e8177decee89ac18f628d55edb" style="width: 100.0%; height: 100.0%;">Node: 42437654<br>Week: 2024-11-11<br>Relative risk: Highest-priority (top 10%)<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_f6d365352a5e42ecf2364f6d0d2de9ac.setContent(html_6a9e32e8177decee89ac18f628d55edb);
+            
+        
+
+        marker_deba1326858bca88411922a3c8219b1c.bindPopup(popup_f6d365352a5e42ecf2364f6d0d2de9ac)
+        ;
+
+        
+    
+    
+            marker_deba1326858bca88411922a3c8219b1c.bindTooltip(
+                `<div>
+                     Highest-priority (top 10%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0e45343c522abb31ca23b6d6a6480a12 = L.marker(
+                [40.7181637, -73.993839],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_346c1dab0f7332f2239821c402ab8ff3 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_d11885e5e8249ded938dfac7bd388930 = $(`<div id="html_d11885e5e8249ded938dfac7bd388930" style="width: 100.0%; height: 100.0%;">Node: 42452067<br>Week: 2024-12-09<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_346c1dab0f7332f2239821c402ab8ff3.setContent(html_d11885e5e8249ded938dfac7bd388930);
+            
+        
+
+        marker_0e45343c522abb31ca23b6d6a6480a12.bindPopup(popup_346c1dab0f7332f2239821c402ab8ff3)
+        ;
+
+        
+    
+    
+            marker_0e45343c522abb31ca23b6d6a6480a12.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_762af1660a2a71dac0ecf117bae2bcf2 = L.marker(
+                [40.7606212, -73.9643559],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9e192926c46f476b19bcba8f4786de90 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_26cf80f72ab514c5e86bbf40d7f67ec4 = $(`<div id="html_26cf80f72ab514c5e86bbf40d7f67ec4" style="width: 100.0%; height: 100.0%;">Node: 42424089<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 5<br>Outcome: false_positive</div>`)[0];
+                popup_9e192926c46f476b19bcba8f4786de90.setContent(html_26cf80f72ab514c5e86bbf40d7f67ec4);
+            
+        
+
+        marker_762af1660a2a71dac0ecf117bae2bcf2.bindPopup(popup_9e192926c46f476b19bcba8f4786de90)
+        ;
+
+        
+    
+    
+            marker_762af1660a2a71dac0ecf117bae2bcf2.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fe0093331617630e75b0df01995a139a = L.marker(
+                [40.7960087, -73.9354016],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_2fe24f78f89fcb9d344636d611a534f5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_869b0e8c461295f23987864ef4eb54b6 = $(`<div id="html_869b0e8c461295f23987864ef4eb54b6" style="width: 100.0%; height: 100.0%;">Node: 42456115<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_2fe24f78f89fcb9d344636d611a534f5.setContent(html_869b0e8c461295f23987864ef4eb54b6);
+            
+        
+
+        marker_fe0093331617630e75b0df01995a139a.bindPopup(popup_2fe24f78f89fcb9d344636d611a534f5)
+        ;
+
+        
+    
+    
+            marker_fe0093331617630e75b0df01995a139a.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4efde912b24fe9ce48566038c0265463 = L.marker(
+                [40.7589842, -73.9959405],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_30330e7c462693e196b113da404bc8f8 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fdd70d620c3cf80202be62c313369763 = $(`<div id="html_fdd70d620c3cf80202be62c313369763" style="width: 100.0%; height: 100.0%;">Node: 42455751<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_30330e7c462693e196b113da404bc8f8.setContent(html_fdd70d620c3cf80202be62c313369763);
+            
+        
+
+        marker_4efde912b24fe9ce48566038c0265463.bindPopup(popup_30330e7c462693e196b113da404bc8f8)
+        ;
+
+        
+    
+    
+            marker_4efde912b24fe9ce48566038c0265463.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a314db61693cec7df80a07e3c2ed8b8d = L.marker(
+                [40.7203018, -73.9939937],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_788602d06ce345865e8d7ff1e7ea0fe5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b5f72256111a4bc6a7f5d38030b841b8 = $(`<div id="html_b5f72256111a4bc6a7f5d38030b841b8" style="width: 100.0%; height: 100.0%;">Node: 1773076511<br>Week: 2024-12-02<br>Relative risk: Elevated relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 1.0<br>Street count: 5<br>Outcome: true_positive</div>`)[0];
+                popup_788602d06ce345865e8d7ff1e7ea0fe5.setContent(html_b5f72256111a4bc6a7f5d38030b841b8);
+            
+        
+
+        marker_a314db61693cec7df80a07e3c2ed8b8d.bindPopup(popup_788602d06ce345865e8d7ff1e7ea0fe5)
+        ;
+
+        
+    
+    
+            marker_a314db61693cec7df80a07e3c2ed8b8d.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_347aeb23589f87f0883ce5154fc12fe3 = L.marker(
+                [40.7520747, -74.0009801],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_10b7a40eba7b0efbf02bd21ddab2092f = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_f4cf580a2cbe85091c06a288f38a36e7 = $(`<div id="html_f4cf580a2cbe85091c06a288f38a36e7" style="width: 100.0%; height: 100.0%;">Node: 42437693<br>Week: 2024-12-09<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_10b7a40eba7b0efbf02bd21ddab2092f.setContent(html_f4cf580a2cbe85091c06a288f38a36e7);
+            
+        
+
+        marker_347aeb23589f87f0883ce5154fc12fe3.bindPopup(popup_10b7a40eba7b0efbf02bd21ddab2092f)
+        ;
+
+        
+    
+    
+            marker_347aeb23589f87f0883ce5154fc12fe3.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_39a285bb07f8ce462c29a3f86240f653 = L.marker(
+                [40.7457391, -73.978127],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_3eb7a0cb7b99c38766454e27635500d7 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_8d7166da13fd402a18e72a39ec8fdef4 = $(`<div id="html_8d7166da13fd402a18e72a39ec8fdef4" style="width: 100.0%; height: 100.0%;">Node: 42445378<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_3eb7a0cb7b99c38766454e27635500d7.setContent(html_8d7166da13fd402a18e72a39ec8fdef4);
+            
+        
+
+        marker_39a285bb07f8ce462c29a3f86240f653.bindPopup(popup_3eb7a0cb7b99c38766454e27635500d7)
+        ;
+
+        
+    
+    
+            marker_39a285bb07f8ce462c29a3f86240f653.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_1bede10ae4093ee2fad0c5aaf85ea416 = L.marker(
+                [40.7460796, -73.9749393],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7c82524cf195565b16e2d6878a21f407 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_02dd9fe7953aec409ec6f7f1052b2211 = $(`<div id="html_02dd9fe7953aec409ec6f7f1052b2211" style="width: 100.0%; height: 100.0%;">Node: 42423020<br>Week: 2024-11-25<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 5<br>Outcome: false_positive</div>`)[0];
+                popup_7c82524cf195565b16e2d6878a21f407.setContent(html_02dd9fe7953aec409ec6f7f1052b2211);
+            
+        
+
+        marker_1bede10ae4093ee2fad0c5aaf85ea416.bindPopup(popup_7c82524cf195565b16e2d6878a21f407)
+        ;
+
+        
+    
+    
+            marker_1bede10ae4093ee2fad0c5aaf85ea416.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_343cb4b2e1cf28fb811488733ff59ff3 = L.marker(
+                [40.7515074, -73.9977245],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_87b630c94576e90f1d29b839ca1e74b6 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_72d00d85bd8432f5882162f959348cfb = $(`<div id="html_72d00d85bd8432f5882162f959348cfb" style="width: 100.0%; height: 100.0%;">Node: 4557517549<br>Week: 2024-12-09<br>Relative risk: Elevated relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_87b630c94576e90f1d29b839ca1e74b6.setContent(html_72d00d85bd8432f5882162f959348cfb);
+            
+        
+
+        marker_343cb4b2e1cf28fb811488733ff59ff3.bindPopup(popup_87b630c94576e90f1d29b839ca1e74b6)
+        ;
+
+        
+    
+    
+            marker_343cb4b2e1cf28fb811488733ff59ff3.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2f139174dffc7e8594bec6dbc24e1853 = L.marker(
+                [40.7571536, -73.9935785],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_fc657428000f11218a5ee51660f803ca = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_91a2c9867efcf3a4577b954b9f3635ae = $(`<div id="html_91a2c9867efcf3a4577b954b9f3635ae" style="width: 100.0%; height: 100.0%;">Node: 42444991<br>Week: 2024-12-02<br>Relative risk: Elevated relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_fc657428000f11218a5ee51660f803ca.setContent(html_91a2c9867efcf3a4577b954b9f3635ae);
+            
+        
+
+        marker_2f139174dffc7e8594bec6dbc24e1853.bindPopup(popup_fc657428000f11218a5ee51660f803ca)
+        ;
+
+        
+    
+    
+            marker_2f139174dffc7e8594bec6dbc24e1853.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_51345e5865507bc0a7e8d81f3d488f4c = L.marker(
+                [40.8037065, -73.9358291],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_b286d2de4a1e22f7e2fcfe5e869775d8 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_2fd8c35bb34c826c96b953c38ec3ddfb = $(`<div id="html_2fd8c35bb34c826c96b953c38ec3ddfb" style="width: 100.0%; height: 100.0%;">Node: 42444458<br>Week: 2024-11-11<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_b286d2de4a1e22f7e2fcfe5e869775d8.setContent(html_2fd8c35bb34c826c96b953c38ec3ddfb);
+            
+        
+
+        marker_51345e5865507bc0a7e8d81f3d488f4c.bindPopup(popup_b286d2de4a1e22f7e2fcfe5e869775d8)
+        ;
+
+        
+    
+    
+            marker_51345e5865507bc0a7e8d81f3d488f4c.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_28735ca2732b44529308c896865e1337 = L.marker(
+                [40.8043802, -73.9374253],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_cafb77b801732c9dd0b040eaca87b9e7 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_71b4dc5527d71dd95285ee1b3a6ccc0e = $(`<div id="html_71b4dc5527d71dd95285ee1b3a6ccc0e" style="width: 100.0%; height: 100.0%;">Node: 42444457<br>Week: 2024-11-11<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_cafb77b801732c9dd0b040eaca87b9e7.setContent(html_71b4dc5527d71dd95285ee1b3a6ccc0e);
+            
+        
+
+        marker_28735ca2732b44529308c896865e1337.bindPopup(popup_cafb77b801732c9dd0b040eaca87b9e7)
+        ;
+
+        
+    
+    
+            marker_28735ca2732b44529308c896865e1337.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_6c76c50d8d22f0e6c584124ead68f898 = L.marker(
+                [40.7560361, -73.9869489],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_96b8d571dd12b723c7525039384cabc5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_be82490d685bd010243ec6753a3e0c32 = $(`<div id="html_be82490d685bd010243ec6753a3e0c32" style="width: 100.0%; height: 100.0%;">Node: 42437363<br>Week: 2024-12-09<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_96b8d571dd12b723c7525039384cabc5.setContent(html_be82490d685bd010243ec6753a3e0c32);
+            
+        
+
+        marker_6c76c50d8d22f0e6c584124ead68f898.bindPopup(popup_96b8d571dd12b723c7525039384cabc5)
+        ;
+
+        
+    
+    
+            marker_6c76c50d8d22f0e6c584124ead68f898.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_d62d69f54bff5450e2c3646bd342e88d = L.marker(
+                [40.7986336, -73.9416222],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9c1f36a5da8ee7e3c1dac7875de0c451 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_771a74c76ce8ceef59525a74e275ab68 = $(`<div id="html_771a74c76ce8ceef59525a74e275ab68" style="width: 100.0%; height: 100.0%;">Node: 42447199<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_9c1f36a5da8ee7e3c1dac7875de0c451.setContent(html_771a74c76ce8ceef59525a74e275ab68);
+            
+        
+
+        marker_d62d69f54bff5450e2c3646bd342e88d.bindPopup(popup_9c1f36a5da8ee7e3c1dac7875de0c451)
+        ;
+
+        
+    
+    
+            marker_d62d69f54bff5450e2c3646bd342e88d.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_3c68a15a6ec229c4ea17c84b482351f6 = L.marker(
+                [40.7906269, -73.9424329],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_8ae81bc9bce133aee43f4d0cd1514a1d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_5f12e0f547aa7a91ce5202c1ec44eb71 = $(`<div id="html_5f12e0f547aa7a91ce5202c1ec44eb71" style="width: 100.0%; height: 100.0%;">Node: 42443068<br>Week: 2024-10-28<br>Relative risk: Elevated relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_8ae81bc9bce133aee43f4d0cd1514a1d.setContent(html_5f12e0f547aa7a91ce5202c1ec44eb71);
+            
+        
+
+        marker_3c68a15a6ec229c4ea17c84b482351f6.bindPopup(popup_8ae81bc9bce133aee43f4d0cd1514a1d)
+        ;
+
+        
+    
+    
+            marker_3c68a15a6ec229c4ea17c84b482351f6.bindTooltip(
+                `<div>
+                     Elevated relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_23a6e6a86e77df840bc979d8fceaf518 = L.marker(
+                [40.769017, -73.9923216],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_5b81a28fe4601d7647df05fe0fc6de4f = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_f5e8e5369ea4e2c2b1fb4f244d81f296 = $(`<div id="html_f5e8e5369ea4e2c2b1fb4f244d81f296" style="width: 100.0%; height: 100.0%;">Node: 42430739<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_5b81a28fe4601d7647df05fe0fc6de4f.setContent(html_f5e8e5369ea4e2c2b1fb4f244d81f296);
+            
+        
+
+        marker_23a6e6a86e77df840bc979d8fceaf518.bindPopup(popup_5b81a28fe4601d7647df05fe0fc6de4f)
+        ;
+
+        
+    
+    
+            marker_23a6e6a86e77df840bc979d8fceaf518.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c25f901621c632961b0cb4a84b87c26b = L.marker(
+                [40.7502936, -73.9948451],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_47cae82144b0f83487b8919d44c5d1eb = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_9b182ce64a03ce8aa5871d0380c6534b = $(`<div id="html_9b182ce64a03ce8aa5871d0380c6534b" style="width: 100.0%; height: 100.0%;">Node: 4443775465<br>Week: 2024-11-11<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_47cae82144b0f83487b8919d44c5d1eb.setContent(html_9b182ce64a03ce8aa5871d0380c6534b);
+            
+        
+
+        marker_c25f901621c632961b0cb4a84b87c26b.bindPopup(popup_47cae82144b0f83487b8919d44c5d1eb)
+        ;
+
+        
+    
+    
+            marker_c25f901621c632961b0cb4a84b87c26b.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_3601a3e69652ea4f7cc84b2c32cb5a01 = L.marker(
+                [40.7584326, -73.9926458],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_ed9313b01530513580e039cd5a402fe3 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_e58b2a0ab535e2c189f476c7956d26d0 = $(`<div id="html_e58b2a0ab535e2c189f476c7956d26d0" style="width: 100.0%; height: 100.0%;">Node: 42437368<br>Week: 2024-12-16<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_ed9313b01530513580e039cd5a402fe3.setContent(html_e58b2a0ab535e2c189f476c7956d26d0);
+            
+        
+
+        marker_3601a3e69652ea4f7cc84b2c32cb5a01.bindPopup(popup_ed9313b01530513580e039cd5a402fe3)
+        ;
+
+        
+    
+    
+            marker_3601a3e69652ea4f7cc84b2c32cb5a01.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_9ad978a5f7e4e95dc94f7d746945ccd0 = L.marker(
+                [40.7703169, -73.9913932],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f36243ef14f3db9849bfe190588f57ad = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_c5f101d2e4204099a8423dd5fe7a6b73 = $(`<div id="html_c5f101d2e4204099a8423dd5fe7a6b73" style="width: 100.0%; height: 100.0%;">Node: 42430745<br>Week: 2024-11-18<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_f36243ef14f3db9849bfe190588f57ad.setContent(html_c5f101d2e4204099a8423dd5fe7a6b73);
+            
+        
+
+        marker_9ad978a5f7e4e95dc94f7d746945ccd0.bindPopup(popup_f36243ef14f3db9849bfe190588f57ad)
+        ;
+
+        
+    
+    
+            marker_9ad978a5f7e4e95dc94f7d746945ccd0.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_50d78372cfecbed4684ef6d88d8a3bff = L.marker(
+                [40.7970162, -73.9377697],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e1eca876d1d04c7d939ef147c3b60704 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_4c31f4c7a99012e7986bb0696024d471 = $(`<div id="html_4c31f4c7a99012e7986bb0696024d471" style="width: 100.0%; height: 100.0%;">Node: 42443085<br>Week: 2024-11-11<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e1eca876d1d04c7d939ef147c3b60704.setContent(html_4c31f4c7a99012e7986bb0696024d471);
+            
+        
+
+        marker_50d78372cfecbed4684ef6d88d8a3bff.bindPopup(popup_e1eca876d1d04c7d939ef147c3b60704)
+        ;
+
+        
+    
+    
+            marker_50d78372cfecbed4684ef6d88d8a3bff.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_ff09911e9f6b034492b6bfc9ff0e3e99 = L.marker(
+                [40.7938155, -73.9401082],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_1492b743694ae457daf36f9c36417805 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_6ba126df0df41b1d2c36fe722e14964d = $(`<div id="html_6ba126df0df41b1d2c36fe722e14964d" style="width: 100.0%; height: 100.0%;">Node: 42443077<br>Week: 2024-11-11<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_1492b743694ae457daf36f9c36417805.setContent(html_6ba126df0df41b1d2c36fe722e14964d);
+            
+        
+
+        marker_ff09911e9f6b034492b6bfc9ff0e3e99.bindPopup(popup_1492b743694ae457daf36f9c36417805)
+        ;
+
+        
+    
+    
+            marker_ff09911e9f6b034492b6bfc9ff0e3e99.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c4dd0d510b92262dd621284b2c4b96ea = L.marker(
+                [40.7896284, -73.9400642],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_d77d9af3a1b45ee2aa63a099f22e795b = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_4bf76c4a3fc33bbcb8cffb36836cbbe2 = $(`<div id="html_4bf76c4a3fc33bbcb8cffb36836cbbe2" style="width: 100.0%; height: 100.0%;">Node: 42450468<br>Week: 2024-11-11<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_d77d9af3a1b45ee2aa63a099f22e795b.setContent(html_4bf76c4a3fc33bbcb8cffb36836cbbe2);
+            
+        
+
+        marker_c4dd0d510b92262dd621284b2c4b96ea.bindPopup(popup_d77d9af3a1b45ee2aa63a099f22e795b)
+        ;
+
+        
+    
+    
+            marker_c4dd0d510b92262dd621284b2c4b96ea.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_85213536219a7e2a33f4ead616c587e8 = L.marker(
+                [40.7194667, -73.9943946],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_43c7271b4aca58cd528da85cd6cbe387 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_96a0e760ecec0985cfa37fee33a86b0d = $(`<div id="html_96a0e760ecec0985cfa37fee33a86b0d" style="width: 100.0%; height: 100.0%;">Node: 42432184<br>Week: 2024-11-18<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_43c7271b4aca58cd528da85cd6cbe387.setContent(html_96a0e760ecec0985cfa37fee33a86b0d);
+            
+        
+
+        marker_85213536219a7e2a33f4ead616c587e8.bindPopup(popup_43c7271b4aca58cd528da85cd6cbe387)
+        ;
+
+        
+    
+    
+            marker_85213536219a7e2a33f4ead616c587e8.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_251b09e0adb05856c79c9ee944ff9504 = L.marker(
+                [40.7171177, -73.9985901],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_090e3e19c638cd1c2b7658f03d4a6cf4 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_ab33fa7dcb689d8967f15f9169c44c5d = $(`<div id="html_ab33fa7dcb689d8967f15f9169c44c5d" style="width: 100.0%; height: 100.0%;">Node: 42435451<br>Week: 2024-11-18<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_090e3e19c638cd1c2b7658f03d4a6cf4.setContent(html_ab33fa7dcb689d8967f15f9169c44c5d);
+            
+        
+
+        marker_251b09e0adb05856c79c9ee944ff9504.bindPopup(popup_090e3e19c638cd1c2b7658f03d4a6cf4)
+        ;
+
+        
+    
+    
+            marker_251b09e0adb05856c79c9ee944ff9504.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_73003b3c161713f28e43c27098db2fc2 = L.marker(
+                [40.7666367, -73.986668],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_3f9c137f6dca875936020d019b2b9487 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_a3eaa963814cd0580142a8413ac2ad69 = $(`<div id="html_a3eaa963814cd0580142a8413ac2ad69" style="width: 100.0%; height: 100.0%;">Node: 42440960<br>Week: 2024-11-04<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_3f9c137f6dca875936020d019b2b9487.setContent(html_a3eaa963814cd0580142a8413ac2ad69);
+            
+        
+
+        marker_73003b3c161713f28e43c27098db2fc2.bindPopup(popup_3f9c137f6dca875936020d019b2b9487)
+        ;
+
+        
+    
+    
+            marker_73003b3c161713f28e43c27098db2fc2.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c4d66580a338b8408debee6eef9bc600 = L.marker(
+                [40.754842, -73.984118],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_cd631a04b50cfc67930d51f312614254 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cf1a50ceaeede04ac30b4a83dc3741b6 = $(`<div id="html_cf1a50ceaeede04ac30b4a83dc3741b6" style="width: 100.0%; height: 100.0%;">Node: 42430333<br>Week: 2024-11-25<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_cd631a04b50cfc67930d51f312614254.setContent(html_cf1a50ceaeede04ac30b4a83dc3741b6);
+            
+        
+
+        marker_c4d66580a338b8408debee6eef9bc600.bindPopup(popup_cd631a04b50cfc67930d51f312614254)
+        ;
+
+        
+    
+    
+            marker_c4d66580a338b8408debee6eef9bc600.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a54bc38c15076076fa92283238e77296 = L.marker(
+                [40.7596264, -73.9954726],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_c120e0e801aa3596d843a3cbad628a6d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1435097566018e1fa1794415391536ad = $(`<div id="html_1435097566018e1fa1794415391536ad" style="width: 100.0%; height: 100.0%;">Node: 42437371<br>Week: 2024-11-04<br>Relative risk: Moderate relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_c120e0e801aa3596d843a3cbad628a6d.setContent(html_1435097566018e1fa1794415391536ad);
+            
+        
+
+        marker_a54bc38c15076076fa92283238e77296.bindPopup(popup_c120e0e801aa3596d843a3cbad628a6d)
+        ;
+
+        
+    
+    
+            marker_a54bc38c15076076fa92283238e77296.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_184d77e7b77bc25850fcdfb8df715a77 = L.marker(
+                [40.7608639, -73.9610636],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7f7f552fe5134027987fbe9e1555ff11 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_eeadc2ddd6376673d69f1e98b4bda205 = $(`<div id="html_eeadc2ddd6376673d69f1e98b4bda205" style="width: 100.0%; height: 100.0%;">Node: 42436531<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_7f7f552fe5134027987fbe9e1555ff11.setContent(html_eeadc2ddd6376673d69f1e98b4bda205);
+            
+        
+
+        marker_184d77e7b77bc25850fcdfb8df715a77.bindPopup(popup_7f7f552fe5134027987fbe9e1555ff11)
+        ;
+
+        
+    
+    
+            marker_184d77e7b77bc25850fcdfb8df715a77.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0a92ea837f0ac1fa8a9ce2e86d28a256 = L.marker(
+                [40.749101, -73.992006],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_6d1826f671c0ceb66e9179876ce5af05 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fd0269afba996b46be3a7fbf917430c4 = $(`<div id="html_fd0269afba996b46be3a7fbf917430c4" style="width: 100.0%; height: 100.0%;">Node: 42435422<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_6d1826f671c0ceb66e9179876ce5af05.setContent(html_fd0269afba996b46be3a7fbf917430c4);
+            
+        
+
+        marker_0a92ea837f0ac1fa8a9ce2e86d28a256.bindPopup(popup_6d1826f671c0ceb66e9179876ce5af05)
+        ;
+
+        
+    
+    
+            marker_0a92ea837f0ac1fa8a9ce2e86d28a256.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_84936d159d5abcc90a3f248c14e9659a = L.marker(
+                [40.7225692, -74.006317],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_45ff0da2d0758a3b9f47d9541acc821f = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_ee2b2d5cde2434e0d0ed49db2850ae33 = $(`<div id="html_ee2b2d5cde2434e0d0ed49db2850ae33" style="width: 100.0%; height: 100.0%;">Node: 42440838<br>Week: 2024-12-09<br>Relative risk: Moderate relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_45ff0da2d0758a3b9f47d9541acc821f.setContent(html_ee2b2d5cde2434e0d0ed49db2850ae33);
+            
+        
+
+        marker_84936d159d5abcc90a3f248c14e9659a.bindPopup(popup_45ff0da2d0758a3b9f47d9541acc821f)
+        ;
+
+        
+    
+    
+            marker_84936d159d5abcc90a3f248c14e9659a.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c0ca26f3b968b1bd2ce96f6ec1636544 = L.marker(
+                [40.7517476, -73.9708043],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e8e65dd395d3dbdd3f45e604411c1deb = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_290fa480f8bd76fe7a72e9f9cc2beb50 = $(`<div id="html_290fa480f8bd76fe7a72e9f9cc2beb50" style="width: 100.0%; height: 100.0%;">Node: 42442947<br>Week: 2024-12-09<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e8e65dd395d3dbdd3f45e604411c1deb.setContent(html_290fa480f8bd76fe7a72e9f9cc2beb50);
+            
+        
+
+        marker_c0ca26f3b968b1bd2ce96f6ec1636544.bindPopup(popup_e8e65dd395d3dbdd3f45e604411c1deb)
+        ;
+
+        
+    
+    
+            marker_c0ca26f3b968b1bd2ce96f6ec1636544.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fed1de4e06b1806f025a4709db4884e6 = L.marker(
+                [40.7559486, -73.9907278],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_3227796f9bc18fb6f81db8012e2200f1 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1b1eb054db80528f217b9b758d66f63f = $(`<div id="html_1b1eb054db80528f217b9b758d66f63f" style="width: 100.0%; height: 100.0%;">Node: 42435657<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_3227796f9bc18fb6f81db8012e2200f1.setContent(html_1b1eb054db80528f217b9b758d66f63f);
+            
+        
+
+        marker_fed1de4e06b1806f025a4709db4884e6.bindPopup(popup_3227796f9bc18fb6f81db8012e2200f1)
+        ;
+
+        
+    
+    
+            marker_fed1de4e06b1806f025a4709db4884e6.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_d8ae1ed956716399b4f9d08f43834b4f = L.marker(
+                [40.7615618, -73.966589],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_c73ab110c03565cec3e72027a3180cf2 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_a609a6503a422b54924d980259fa5576 = $(`<div id="html_a609a6503a422b54924d980259fa5576" style="width: 100.0%; height: 100.0%;">Node: 4288677093<br>Week: 2024-11-04<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_c73ab110c03565cec3e72027a3180cf2.setContent(html_a609a6503a422b54924d980259fa5576);
+            
+        
+
+        marker_d8ae1ed956716399b4f9d08f43834b4f.bindPopup(popup_c73ab110c03565cec3e72027a3180cf2)
+        ;
+
+        
+    
+    
+            marker_d8ae1ed956716399b4f9d08f43834b4f.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_40a179cb931a9e925882e7605691d35e = L.marker(
+                [40.7613307, -74.0016475],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_24e31666d309a5d1b5275dd57dbcd16e = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_630b17a8a733bbdf377b552c7ae53ab8 = $(`<div id="html_630b17a8a733bbdf377b552c7ae53ab8" style="width: 100.0%; height: 100.0%;">Node: 42453545<br>Week: 2024-11-11<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_24e31666d309a5d1b5275dd57dbcd16e.setContent(html_630b17a8a733bbdf377b552c7ae53ab8);
+            
+        
+
+        marker_40a179cb931a9e925882e7605691d35e.bindPopup(popup_24e31666d309a5d1b5275dd57dbcd16e)
+        ;
+
+        
+    
+    
+            marker_40a179cb931a9e925882e7605691d35e.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4b465113cc684b2d8c6a41d715b76e27 = L.marker(
+                [40.7413643, -73.9891378],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_15ef949a9b30dc9371c7ac4f4be4bfa0 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1fe1e9f4d1261073ae245a291c98dd1d = $(`<div id="html_1fe1e9f4d1261073ae245a291c98dd1d" style="width: 100.0%; height: 100.0%;">Node: 42428201<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_15ef949a9b30dc9371c7ac4f4be4bfa0.setContent(html_1fe1e9f4d1261073ae245a291c98dd1d);
+            
+        
+
+        marker_4b465113cc684b2d8c6a41d715b76e27.bindPopup(popup_15ef949a9b30dc9371c7ac4f4be4bfa0)
+        ;
+
+        
+    
+    
+            marker_4b465113cc684b2d8c6a41d715b76e27.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0e49f6e8e21b4eab833346305ad4b493 = L.marker(
+                [40.75533, -73.991177],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_0ce49eaf5e50799a42da545cd8dcebea = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1894c885f95adf76dc93c19fb35b3448 = $(`<div id="html_1894c885f95adf76dc93c19fb35b3448" style="width: 100.0%; height: 100.0%;">Node: 42435654<br>Week: 2024-10-28<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_0ce49eaf5e50799a42da545cd8dcebea.setContent(html_1894c885f95adf76dc93c19fb35b3448);
+            
+        
+
+        marker_0e49f6e8e21b4eab833346305ad4b493.bindPopup(popup_0ce49eaf5e50799a42da545cd8dcebea)
+        ;
+
+        
+    
+    
+            marker_0e49f6e8e21b4eab833346305ad4b493.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f26c33c02d782cc9bd826ffff2217184 = L.marker(
+                [40.791572, -73.944675],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_84c6626f284e619575c368dc37c82242 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_6f336264c61012fab9e6bf482c238311 = $(`<div id="html_6f336264c61012fab9e6bf482c238311" style="width: 100.0%; height: 100.0%;">Node: 42450057<br>Week: 2024-11-25<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_84c6626f284e619575c368dc37c82242.setContent(html_6f336264c61012fab9e6bf482c238311);
+            
+        
+
+        marker_f26c33c02d782cc9bd826ffff2217184.bindPopup(popup_84c6626f284e619575c368dc37c82242)
+        ;
+
+        
+    
+    
+            marker_f26c33c02d782cc9bd826ffff2217184.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4f50568b2b89139a29b7c2c3975daf61 = L.marker(
+                [40.7194015, -74.0018814],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_2edb7d9e97bacd4f7ec3166a95a258e1 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_54ffcb4ea1d4338108e6f49275959f93 = $(`<div id="html_54ffcb4ea1d4338108e6f49275959f93" style="width: 100.0%; height: 100.0%;">Node: 42428433<br>Week: 2024-12-09<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_2edb7d9e97bacd4f7ec3166a95a258e1.setContent(html_54ffcb4ea1d4338108e6f49275959f93);
+            
+        
+
+        marker_4f50568b2b89139a29b7c2c3975daf61.bindPopup(popup_2edb7d9e97bacd4f7ec3166a95a258e1)
+        ;
+
+        
+    
+    
+            marker_4f50568b2b89139a29b7c2c3975daf61.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4e3878a41bf37aeda243d612dcbc18c4 = L.marker(
+                [40.7539186, -73.9996344],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_ffe0d2f7699719f02e999bb48466c5c1 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_2dc623e1f77b22dc095e2aa93e1bca43 = $(`<div id="html_2dc623e1f77b22dc095e2aa93e1bca43" style="width: 100.0%; height: 100.0%;">Node: 42446668<br>Week: 2024-12-09<br>Relative risk: Moderate relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_ffe0d2f7699719f02e999bb48466c5c1.setContent(html_2dc623e1f77b22dc095e2aa93e1bca43);
+            
+        
+
+        marker_4e3878a41bf37aeda243d612dcbc18c4.bindPopup(popup_ffe0d2f7699719f02e999bb48466c5c1)
+        ;
+
+        
+    
+    
+            marker_4e3878a41bf37aeda243d612dcbc18c4.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_be42c05bdb9e7368e6737ecf06184439 = L.marker(
+                [40.7716133, -73.9904508],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_3db42c5dab06edfe38e2a4212fcfa7be = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_7176eb5ff6f15356254a150f8750a36c = $(`<div id="html_7176eb5ff6f15356254a150f8750a36c" style="width: 100.0%; height: 100.0%;">Node: 42430749<br>Week: 2024-12-16<br>Relative risk: Moderate relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_3db42c5dab06edfe38e2a4212fcfa7be.setContent(html_7176eb5ff6f15356254a150f8750a36c);
+            
+        
+
+        marker_be42c05bdb9e7368e6737ecf06184439.bindPopup(popup_3db42c5dab06edfe38e2a4212fcfa7be)
+        ;
+
+        
+    
+    
+            marker_be42c05bdb9e7368e6737ecf06184439.bindTooltip(
+                `<div>
+                     Moderate relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_34dcb1c31dc6ffa2f5f427eeb4ce4899 = L.marker(
+                [40.7498011, -73.9877463],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_18c96012d3fc1c8ecef07aa4a770d744 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1333e3365f41420c9227bcab0f113d0f = $(`<div id="html_1333e3365f41420c9227bcab0f113d0f" style="width: 100.0%; height: 100.0%;">Node: 42430304<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_18c96012d3fc1c8ecef07aa4a770d744.setContent(html_1333e3365f41420c9227bcab0f113d0f);
+            
+        
+
+        marker_34dcb1c31dc6ffa2f5f427eeb4ce4899.bindPopup(popup_18c96012d3fc1c8ecef07aa4a770d744)
+        ;
+
+        
+    
+    
+            marker_34dcb1c31dc6ffa2f5f427eeb4ce4899.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_6fe5701ba2dfd80e7466f75a41e9a209 = L.marker(
+                [40.7527418, -73.9968169],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_0ec9012400d7f0ccbebc624748483a30 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_4ea8be75522e28aa7e978b3abc6e3a25 = $(`<div id="html_4ea8be75522e28aa7e978b3abc6e3a25" style="width: 100.0%; height: 100.0%;">Node: 42444954<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_0ec9012400d7f0ccbebc624748483a30.setContent(html_4ea8be75522e28aa7e978b3abc6e3a25);
+            
+        
+
+        marker_6fe5701ba2dfd80e7466f75a41e9a209.bindPopup(popup_0ec9012400d7f0ccbebc624748483a30)
+        ;
+
+        
+    
+    
+            marker_6fe5701ba2dfd80e7466f75a41e9a209.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_7c82d03fa92062fb1a3c1eb6141212ee = L.marker(
+                [40.7213666, -74.0046193],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e6d1659765bb98678f91b9f26605191c = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_a4279c78076fe7e85fce07ce703ac328 = $(`<div id="html_a4279c78076fe7e85fce07ce703ac328" style="width: 100.0%; height: 100.0%;">Node: 42440829<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e6d1659765bb98678f91b9f26605191c.setContent(html_a4279c78076fe7e85fce07ce703ac328);
+            
+        
+
+        marker_7c82d03fa92062fb1a3c1eb6141212ee.bindPopup(popup_e6d1659765bb98678f91b9f26605191c)
+        ;
+
+        
+    
+    
+            marker_7c82d03fa92062fb1a3c1eb6141212ee.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_50a849e68cbeec7c6c2ff9158952856e = L.marker(
+                [40.7066739, -74.0159381],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_0d85a74927b5d75ad4da6ea1453d0900 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1e55352b2fcb3fe60d83d7e5530f656b = $(`<div id="html_1e55352b2fcb3fe60d83d7e5530f656b" style="width: 100.0%; height: 100.0%;">Node: 42451370<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_0d85a74927b5d75ad4da6ea1453d0900.setContent(html_1e55352b2fcb3fe60d83d7e5530f656b);
+            
+        
+
+        marker_50a849e68cbeec7c6c2ff9158952856e.bindPopup(popup_0d85a74927b5d75ad4da6ea1453d0900)
+        ;
+
+        
+    
+    
+            marker_50a849e68cbeec7c6c2ff9158952856e.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e5f2befcb7899c2abee6de73058a7685 = L.marker(
+                [40.7591038, -73.9921385],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_6c839d525ba5a6d6ec274cb0e66665af = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cd5d744d1a7a23a0597db80c2be61ce6 = $(`<div id="html_cd5d744d1a7a23a0597db80c2be61ce6" style="width: 100.0%; height: 100.0%;">Node: 42445011<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_6c839d525ba5a6d6ec274cb0e66665af.setContent(html_cd5d744d1a7a23a0597db80c2be61ce6);
+            
+        
+
+        marker_e5f2befcb7899c2abee6de73058a7685.bindPopup(popup_6c839d525ba5a6d6ec274cb0e66665af)
+        ;
+
+        
+    
+    
+            marker_e5f2befcb7899c2abee6de73058a7685.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_dd281a494ea4871d0698b28fc263d12c = L.marker(
+                [40.7557816, -74.0019763],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9a29a25375a0cd183f1c2699b2a87dbc = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_19170a3e61ae309bcfc6ae686fe3b291 = $(`<div id="html_19170a3e61ae309bcfc6ae686fe3b291" style="width: 100.0%; height: 100.0%;">Node: 42430633<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_9a29a25375a0cd183f1c2699b2a87dbc.setContent(html_19170a3e61ae309bcfc6ae686fe3b291);
+            
+        
+
+        marker_dd281a494ea4871d0698b28fc263d12c.bindPopup(popup_9a29a25375a0cd183f1c2699b2a87dbc)
+        ;
+
+        
+    
+    
+            marker_dd281a494ea4871d0698b28fc263d12c.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_dc22e9d184317e6b40463aa4d78f87b1 = L.marker(
+                [40.7931803, -73.9405687],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7fed54dbc6fdc9b309405919f53ffaa2 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_4219f1fb9df919c8054180dc56dcaed3 = $(`<div id="html_4219f1fb9df919c8054180dc56dcaed3" style="width: 100.0%; height: 100.0%;">Node: 42434386<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_7fed54dbc6fdc9b309405919f53ffaa2.setContent(html_4219f1fb9df919c8054180dc56dcaed3);
+            
+        
+
+        marker_dc22e9d184317e6b40463aa4d78f87b1.bindPopup(popup_7fed54dbc6fdc9b309405919f53ffaa2)
+        ;
+
+        
+    
+    
+            marker_dc22e9d184317e6b40463aa4d78f87b1.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e1b898f777a97a1ac323b76cacc1b55d = L.marker(
+                [40.7973103, -73.9344558],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_d40bf25574a42ada8409b0e7a441d8fc = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_c51c27df9583f168c0d073f571e95c5f = $(`<div id="html_c51c27df9583f168c0d073f571e95c5f" style="width: 100.0%; height: 100.0%;">Node: 42439498<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_d40bf25574a42ada8409b0e7a441d8fc.setContent(html_c51c27df9583f168c0d073f571e95c5f);
+            
+        
+
+        marker_e1b898f777a97a1ac323b76cacc1b55d.bindPopup(popup_d40bf25574a42ada8409b0e7a441d8fc)
+        ;
+
+        
+    
+    
+            marker_e1b898f777a97a1ac323b76cacc1b55d.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_9db9b8bc7b31d1e7d83526fe8ad17f6a = L.marker(
+                [40.7570985, -73.9698517],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_6b36fa04275edc8877b099b9dc49f8c5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b74cd991963bf0f0ca10cccd626c7125 = $(`<div id="html_b74cd991963bf0f0ca10cccd626c7125" style="width: 100.0%; height: 100.0%;">Node: 42449961<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_6b36fa04275edc8877b099b9dc49f8c5.setContent(html_b74cd991963bf0f0ca10cccd626c7125);
+            
+        
+
+        marker_9db9b8bc7b31d1e7d83526fe8ad17f6a.bindPopup(popup_6b36fa04275edc8877b099b9dc49f8c5)
+        ;
+
+        
+    
+    
+            marker_9db9b8bc7b31d1e7d83526fe8ad17f6a.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_60f2b5b8062e249b89809103c1382247 = L.marker(
+                [40.7191029, -73.9902811],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e6ac26e43f0c6c583e35ec05cb073ba7 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_44b90a661e5cc577c3760254e146c939 = $(`<div id="html_44b90a661e5cc577c3760254e146c939" style="width: 100.0%; height: 100.0%;">Node: 42429762<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_e6ac26e43f0c6c583e35ec05cb073ba7.setContent(html_44b90a661e5cc577c3760254e146c939);
+            
+        
+
+        marker_60f2b5b8062e249b89809103c1382247.bindPopup(popup_e6ac26e43f0c6c583e35ec05cb073ba7)
+        ;
+
+        
+    
+    
+            marker_60f2b5b8062e249b89809103c1382247.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_5a15d2a52620f851a574b9d01e2f29d0 = L.marker(
+                [40.7612397, -73.9639021],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7a7adc6e37f7b4bd7207fbb562f3a1de = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_28e3c50eaa2bc555e884589efbeca1cf = $(`<div id="html_28e3c50eaa2bc555e884589efbeca1cf" style="width: 100.0%; height: 100.0%;">Node: 6176483595<br>Week: 2024-12-02<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 5<br>Outcome: true_positive</div>`)[0];
+                popup_7a7adc6e37f7b4bd7207fbb562f3a1de.setContent(html_28e3c50eaa2bc555e884589efbeca1cf);
+            
+        
+
+        marker_5a15d2a52620f851a574b9d01e2f29d0.bindPopup(popup_7a7adc6e37f7b4bd7207fbb562f3a1de)
+        ;
+
+        
+    
+    
+            marker_5a15d2a52620f851a574b9d01e2f29d0.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_cfe859d27c24c76b032df234f906dbcd = L.marker(
+                [40.7528582, -73.9929759],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_061710bef2f953225cd194c3010d5632 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_92978d99033d6b6f5889c3700a0bceea = $(`<div id="html_92978d99033d6b6f5889c3700a0bceea" style="width: 100.0%; height: 100.0%;">Node: 42435645<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_061710bef2f953225cd194c3010d5632.setContent(html_92978d99033d6b6f5889c3700a0bceea);
+            
+        
+
+        marker_cfe859d27c24c76b032df234f906dbcd.bindPopup(popup_061710bef2f953225cd194c3010d5632)
+        ;
+
+        
+    
+    
+            marker_cfe859d27c24c76b032df234f906dbcd.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2565983f8df588f07fbb51d0fa4943e3 = L.marker(
+                [40.7565324, -73.9940178],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_ef7ac8703f4dfc051e3311201f196d52 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_0fa7f9c14643a75e40230a67629be7ea = $(`<div id="html_0fa7f9c14643a75e40230a67629be7ea" style="width: 100.0%; height: 100.0%;">Node: 42444985<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_ef7ac8703f4dfc051e3311201f196d52.setContent(html_0fa7f9c14643a75e40230a67629be7ea);
+            
+        
+
+        marker_2565983f8df588f07fbb51d0fa4943e3.bindPopup(popup_ef7ac8703f4dfc051e3311201f196d52)
+        ;
+
+        
+    
+    
+            marker_2565983f8df588f07fbb51d0fa4943e3.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_200539b9444f934d5832947ef1933da1 = L.marker(
+                [40.8483863, -73.9376884],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_0b153fc7dd5714d3fbad48a730a9d5c2 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_73d45cab0214ef0e737aee29873eee92 = $(`<div id="html_73d45cab0214ef0e737aee29873eee92" style="width: 100.0%; height: 100.0%;">Node: 42429017<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_0b153fc7dd5714d3fbad48a730a9d5c2.setContent(html_73d45cab0214ef0e737aee29873eee92);
+            
+        
+
+        marker_200539b9444f934d5832947ef1933da1.bindPopup(popup_0b153fc7dd5714d3fbad48a730a9d5c2)
+        ;
+
+        
+    
+    
+            marker_200539b9444f934d5832947ef1933da1.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0691f91b5b7e38062560dc40805e14ae = L.marker(
+                [40.7664978, -73.9941564],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_ad3a0dd54717182501a0bc9d5bd2d489 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_7b30862a1e647664f57a0fa89261094a = $(`<div id="html_7b30862a1e647664f57a0fa89261094a" style="width: 100.0%; height: 100.0%;">Node: 42430707<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_ad3a0dd54717182501a0bc9d5bd2d489.setContent(html_7b30862a1e647664f57a0fa89261094a);
+            
+        
+
+        marker_0691f91b5b7e38062560dc40805e14ae.bindPopup(popup_ad3a0dd54717182501a0bc9d5bd2d489)
+        ;
+
+        
+    
+    
+            marker_0691f91b5b7e38062560dc40805e14ae.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_6305b7fc1482e5742fc549e63763f872 = L.marker(
+                [40.7561457, -73.9676181],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_bdccc2aa1ddae859e66b56138df5b28e = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_49e317d7aad7d39159abfc1f97d80f71 = $(`<div id="html_49e317d7aad7d39159abfc1f97d80f71" style="width: 100.0%; height: 100.0%;">Node: 42442955<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_bdccc2aa1ddae859e66b56138df5b28e.setContent(html_49e317d7aad7d39159abfc1f97d80f71);
+            
+        
+
+        marker_6305b7fc1482e5742fc549e63763f872.bindPopup(popup_bdccc2aa1ddae859e66b56138df5b28e)
+        ;
+
+        
+    
+    
+            marker_6305b7fc1482e5742fc549e63763f872.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_59827a036bdc44a17afcb135513b3906 = L.marker(
+                [40.7691175, -73.988561],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_06ea1ef7415b9e2c6fe663f7234c30eb = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b61847566d217ddcb24a421044e9169a = $(`<div id="html_b61847566d217ddcb24a421044e9169a" style="width: 100.0%; height: 100.0%;">Node: 42455643<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_06ea1ef7415b9e2c6fe663f7234c30eb.setContent(html_b61847566d217ddcb24a421044e9169a);
+            
+        
+
+        marker_59827a036bdc44a17afcb135513b3906.bindPopup(popup_06ea1ef7415b9e2c6fe663f7234c30eb)
+        ;
+
+        
+    
+    
+            marker_59827a036bdc44a17afcb135513b3906.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_336643c8ef94fe37deea339af388b014 = L.marker(
+                [40.7496742, -73.9952961],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_38851b0aeabd8abd3015583a36972e43 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_c43ba686a9dbfb612012edf682606fee = $(`<div id="html_c43ba686a9dbfb612012edf682606fee" style="width: 100.0%; height: 100.0%;">Node: 4443775464<br>Week: 2024-12-02<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_38851b0aeabd8abd3015583a36972e43.setContent(html_c43ba686a9dbfb612012edf682606fee);
+            
+        
+
+        marker_336643c8ef94fe37deea339af388b014.bindPopup(popup_38851b0aeabd8abd3015583a36972e43)
+        ;
+
+        
+    
+    
+            marker_336643c8ef94fe37deea339af388b014.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_78a4686051be6d399f6b6b87135d39a1 = L.marker(
+                [40.7546861, -73.9953826],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_732545f8add1ada56ec6aba2cbf3d339 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_72191c49d4286027fd293cfd54d44bb2 = $(`<div id="html_72191c49d4286027fd293cfd54d44bb2" style="width: 100.0%; height: 100.0%;">Node: 42444964<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_732545f8add1ada56ec6aba2cbf3d339.setContent(html_72191c49d4286027fd293cfd54d44bb2);
+            
+        
+
+        marker_78a4686051be6d399f6b6b87135d39a1.bindPopup(popup_732545f8add1ada56ec6aba2cbf3d339)
+        ;
+
+        
+    
+    
+            marker_78a4686051be6d399f6b6b87135d39a1.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_ddb14a78d319dbe0a4e291f6a0ef8181 = L.marker(
+                [40.7485484, -73.9731474],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f51fdceee0b3652ad5d6227b64c8f729 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_8f361cfcc455265be4e4be136501dcd6 = $(`<div id="html_8f361cfcc455265be4e4be136501dcd6" style="width: 100.0%; height: 100.0%;">Node: 42442935<br>Week: 2024-11-25<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_f51fdceee0b3652ad5d6227b64c8f729.setContent(html_8f361cfcc455265be4e4be136501dcd6);
+            
+        
+
+        marker_ddb14a78d319dbe0a4e291f6a0ef8181.bindPopup(popup_f51fdceee0b3652ad5d6227b64c8f729)
+        ;
+
+        
+    
+    
+            marker_ddb14a78d319dbe0a4e291f6a0ef8181.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_752914305739475c5b99cd0ea430aec4 = L.marker(
+                [40.7944609, -73.9396345],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e5d8e4ab2106881677c09223e0cf69bc = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_87afb75df4435bc57ec763f58f9f21fd = $(`<div id="html_87afb75df4435bc57ec763f58f9f21fd" style="width: 100.0%; height: 100.0%;">Node: 42443078<br>Week: 2024-12-02<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e5d8e4ab2106881677c09223e0cf69bc.setContent(html_87afb75df4435bc57ec763f58f9f21fd);
+            
+        
+
+        marker_752914305739475c5b99cd0ea430aec4.bindPopup(popup_e5d8e4ab2106881677c09223e0cf69bc)
+        ;
+
+        
+    
+    
+            marker_752914305739475c5b99cd0ea430aec4.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_71b37d23747a6b75fbade5a83c82d5af = L.marker(
+                [40.7609247, -73.9945259],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_c7e631c28c254fa15f4498e456f0556c = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cb53b6580a6bea3b7e924d8bc5de195a = $(`<div id="html_cb53b6580a6bea3b7e924d8bc5de195a" style="width: 100.0%; height: 100.0%;">Node: 42443563<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_c7e631c28c254fa15f4498e456f0556c.setContent(html_cb53b6580a6bea3b7e924d8bc5de195a);
+            
+        
+
+        marker_71b37d23747a6b75fbade5a83c82d5af.bindPopup(popup_c7e631c28c254fa15f4498e456f0556c)
+        ;
+
+        
+    
+    
+            marker_71b37d23747a6b75fbade5a83c82d5af.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_1c3e15ccda9bed5f02e44c81521ab596 = L.marker(
+                [40.7605391, -73.9583585],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_eb39785095f757329e367145cbe0b03c = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bca795db78aba77b919e6feed088f304 = $(`<div id="html_bca795db78aba77b919e6feed088f304" style="width: 100.0%; height: 100.0%;">Node: 42427968<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_eb39785095f757329e367145cbe0b03c.setContent(html_bca795db78aba77b919e6feed088f304);
+            
+        
+
+        marker_1c3e15ccda9bed5f02e44c81521ab596.bindPopup(popup_eb39785095f757329e367145cbe0b03c)
+        ;
+
+        
+    
+    
+            marker_1c3e15ccda9bed5f02e44c81521ab596.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_33c4d013504234a351f8d30c5b33d34d = L.marker(
+                [40.7989421, -73.9363574],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_20d3fe564b24d04953859c0602db902b = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_51f16cfecee81e152c5969b520736bd0 = $(`<div id="html_51f16cfecee81e152c5969b520736bd0" style="width: 100.0%; height: 100.0%;">Node: 42435234<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_20d3fe564b24d04953859c0602db902b.setContent(html_51f16cfecee81e152c5969b520736bd0);
+            
+        
+
+        marker_33c4d013504234a351f8d30c5b33d34d.bindPopup(popup_20d3fe564b24d04953859c0602db902b)
+        ;
+
+        
+    
+    
+            marker_33c4d013504234a351f8d30c5b33d34d.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a9fa996766e55bf6017c0f95419dd962 = L.marker(
+                [40.764324, -73.977196],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_1620b3c3acf6c2498ffb353698bcad43 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bb94995bd0adfb1d53931f12abe31f8d = $(`<div id="html_bb94995bd0adfb1d53931f12abe31f8d" style="width: 100.0%; height: 100.0%;">Node: 42430384<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_1620b3c3acf6c2498ffb353698bcad43.setContent(html_bb94995bd0adfb1d53931f12abe31f8d);
+            
+        
+
+        marker_a9fa996766e55bf6017c0f95419dd962.bindPopup(popup_1620b3c3acf6c2498ffb353698bcad43)
+        ;
+
+        
+    
+    
+            marker_a9fa996766e55bf6017c0f95419dd962.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_74db066cec22a1c4d10c9cc2e9454ddc = L.marker(
+                [40.7183916, -73.9873785],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7f5048ff678aa90aa2cb8a42a6063138 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fd04bf0e956d6684a71142a7c4f86bb8 = $(`<div id="html_fd04bf0e956d6684a71142a7c4f86bb8" style="width: 100.0%; height: 100.0%;">Node: 42429782<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_7f5048ff678aa90aa2cb8a42a6063138.setContent(html_fd04bf0e956d6684a71142a7c4f86bb8);
+            
+        
+
+        marker_74db066cec22a1c4d10c9cc2e9454ddc.bindPopup(popup_7f5048ff678aa90aa2cb8a42a6063138)
+        ;
+
+        
+    
+    
+            marker_74db066cec22a1c4d10c9cc2e9454ddc.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_72cddcb74f3dc3ea7c84174ea75a35f1 = L.marker(
+                [40.8107673, -73.9525905],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_57f2d759de57c1f308e60bca89ed9eeb = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_d84ed3630f1ee68feafa165bf5cde7e9 = $(`<div id="html_d84ed3630f1ee68feafa165bf5cde7e9" style="width: 100.0%; height: 100.0%;">Node: 42432929<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_57f2d759de57c1f308e60bca89ed9eeb.setContent(html_d84ed3630f1ee68feafa165bf5cde7e9);
+            
+        
+
+        marker_72cddcb74f3dc3ea7c84174ea75a35f1.bindPopup(popup_57f2d759de57c1f308e60bca89ed9eeb)
+        ;
+
+        
+    
+    
+            marker_72cddcb74f3dc3ea7c84174ea75a35f1.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c28b50f6e6470088fdd99cdd26fe0b4c = L.marker(
+                [40.8095503, -73.9359324],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e8f0ce4f106a97759a47eb60388e12d5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fec00ba0248695d5dfd4e321abbea873 = $(`<div id="html_fec00ba0248695d5dfd4e321abbea873" style="width: 100.0%; height: 100.0%;">Node: 589927991<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e8f0ce4f106a97759a47eb60388e12d5.setContent(html_fec00ba0248695d5dfd4e321abbea873);
+            
+        
+
+        marker_c28b50f6e6470088fdd99cdd26fe0b4c.bindPopup(popup_e8f0ce4f106a97759a47eb60388e12d5)
+        ;
+
+        
+    
+    
+            marker_c28b50f6e6470088fdd99cdd26fe0b4c.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_b4fec55a796259b7c0bc82540006ec67 = L.marker(
+                [40.7503415, -73.9831749],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_803b380a8fa0660be9b6c6d6d0d49750 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_f046ea12482bb407bbffd2ec756c41ea = $(`<div id="html_f046ea12482bb407bbffd2ec756c41ea" style="width: 100.0%; height: 100.0%;">Node: 42443950<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_803b380a8fa0660be9b6c6d6d0d49750.setContent(html_f046ea12482bb407bbffd2ec756c41ea);
+            
+        
+
+        marker_b4fec55a796259b7c0bc82540006ec67.bindPopup(popup_803b380a8fa0660be9b6c6d6d0d49750)
+        ;
+
+        
+    
+    
+            marker_b4fec55a796259b7c0bc82540006ec67.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4905c1176f2a1ae99ed64a2362bdbbf3 = L.marker(
+                [40.8240402, -73.9447637],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_13eb1216b87d7fcff0b05306968195d4 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_9e5cf7190ee570521104c015c7179437 = $(`<div id="html_9e5cf7190ee570521104c015c7179437" style="width: 100.0%; height: 100.0%;">Node: 42432963<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_13eb1216b87d7fcff0b05306968195d4.setContent(html_9e5cf7190ee570521104c015c7179437);
+            
+        
+
+        marker_4905c1176f2a1ae99ed64a2362bdbbf3.bindPopup(popup_13eb1216b87d7fcff0b05306968195d4)
+        ;
+
+        
+    
+    
+            marker_4905c1176f2a1ae99ed64a2362bdbbf3.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a7dcb7dfce0d33602c7c121c876b5b7b = L.marker(
+                [40.794128, -73.9428091],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_4ec8a1c11e96d6cd032cde133ab9fc9a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_2ae4aae3dc5a56e9d8b4e0fc036ed128 = $(`<div id="html_2ae4aae3dc5a56e9d8b4e0fc036ed128" style="width: 100.0%; height: 100.0%;">Node: 42434385<br>Week: 2024-11-04<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_4ec8a1c11e96d6cd032cde133ab9fc9a.setContent(html_2ae4aae3dc5a56e9d8b4e0fc036ed128);
+            
+        
+
+        marker_a7dcb7dfce0d33602c7c121c876b5b7b.bindPopup(popup_4ec8a1c11e96d6cd032cde133ab9fc9a)
+        ;
+
+        
+    
+    
+            marker_a7dcb7dfce0d33602c7c121c876b5b7b.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_81b81ed67a14c67aa2c382a279b65b10 = L.marker(
+                [40.7979434, -73.9339919],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_f017b8986e44e7162b6d9e391fc25e54 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b50607f7d7936e8a5dfaa8ad58a10f84 = $(`<div id="html_b50607f7d7936e8a5dfaa8ad58a10f84" style="width: 100.0%; height: 100.0%;">Node: 42435237<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_f017b8986e44e7162b6d9e391fc25e54.setContent(html_b50607f7d7936e8a5dfaa8ad58a10f84);
+            
+        
+
+        marker_81b81ed67a14c67aa2c382a279b65b10.bindPopup(popup_f017b8986e44e7162b6d9e391fc25e54)
+        ;
+
+        
+    
+    
+            marker_81b81ed67a14c67aa2c382a279b65b10.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_047ab548c8519eb06ab27203d1459fcd = L.marker(
+                [40.7577433, -73.9968456],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_fb373647036d77550b034ccc2a73d012 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b2982ad2e81ebb76807882f2252abb81 = $(`<div id="html_b2982ad2e81ebb76807882f2252abb81" style="width: 100.0%; height: 100.0%;">Node: 42423885<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_fb373647036d77550b034ccc2a73d012.setContent(html_b2982ad2e81ebb76807882f2252abb81);
+            
+        
+
+        marker_047ab548c8519eb06ab27203d1459fcd.bindPopup(popup_fb373647036d77550b034ccc2a73d012)
+        ;
+
+        
+    
+    
+            marker_047ab548c8519eb06ab27203d1459fcd.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_cb7e3ecc9fd12384f900725efc729f0c = L.marker(
+                [40.7184777, -73.994808],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9f2ac788481869068f17d9855471f045 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_82462c47e092f67cf3f7135e4d6ab1dc = $(`<div id="html_82462c47e092f67cf3f7135e4d6ab1dc" style="width: 100.0%; height: 100.0%;">Node: 42437589<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_9f2ac788481869068f17d9855471f045.setContent(html_82462c47e092f67cf3f7135e4d6ab1dc);
+            
+        
+
+        marker_cb7e3ecc9fd12384f900725efc729f0c.bindPopup(popup_9f2ac788481869068f17d9855471f045)
+        ;
+
+        
+    
+    
+            marker_cb7e3ecc9fd12384f900725efc729f0c.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f1ea6772df3cd344559a2f1b13710d51 = L.marker(
+                [40.7593168, -73.9653081],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_0c67313d7119591853763cdfbecdb2d0 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fb32271ad8e2e09b7ca24a9a8f7c8c30 = $(`<div id="html_fb32271ad8e2e09b7ca24a9a8f7c8c30" style="width: 100.0%; height: 100.0%;">Node: 42432861<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_0c67313d7119591853763cdfbecdb2d0.setContent(html_fb32271ad8e2e09b7ca24a9a8f7c8c30);
+            
+        
+
+        marker_f1ea6772df3cd344559a2f1b13710d51.bindPopup(popup_0c67313d7119591853763cdfbecdb2d0)
+        ;
+
+        
+    
+    
+            marker_f1ea6772df3cd344559a2f1b13710d51.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4834b44c6079143680bab55b3bbc4c5e = L.marker(
+                [40.7986248, -73.9395221],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_a2b1efb9a25795f57b2d6c210013cdd2 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_5a28bbd2117fbb331d9236ebf42c4ea7 = $(`<div id="html_5a28bbd2117fbb331d9236ebf42c4ea7" style="width: 100.0%; height: 100.0%;">Node: 42449840<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_a2b1efb9a25795f57b2d6c210013cdd2.setContent(html_5a28bbd2117fbb331d9236ebf42c4ea7);
+            
+        
+
+        marker_4834b44c6079143680bab55b3bbc4c5e.bindPopup(popup_a2b1efb9a25795f57b2d6c210013cdd2)
+        ;
+
+        
+    
+    
+            marker_4834b44c6079143680bab55b3bbc4c5e.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_db4326a909c573fdc41327716919eb1a = L.marker(
+                [40.7572335, -73.9897914],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_a591389bd6c330715870bfe0d06a6918 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_522beb084afaf89f5dd03fb674ff9e27 = $(`<div id="html_522beb084afaf89f5dd03fb674ff9e27" style="width: 100.0%; height: 100.0%;">Node: 42435663<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_a591389bd6c330715870bfe0d06a6918.setContent(html_522beb084afaf89f5dd03fb674ff9e27);
+            
+        
+
+        marker_db4326a909c573fdc41327716919eb1a.bindPopup(popup_a591389bd6c330715870bfe0d06a6918)
+        ;
+
+        
+    
+    
+            marker_db4326a909c573fdc41327716919eb1a.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_60861973df6c0afeed60e61b84adac37 = L.marker(
+                [40.7470461, -73.981266],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_b90fce07d54e97ab915be0b3957da59d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cdeafef7f8c7b239d511e49f5742ece3 = $(`<div id="html_cdeafef7f8c7b239d511e49f5742ece3" style="width: 100.0%; height: 100.0%;">Node: 3786901743<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_b90fce07d54e97ab915be0b3957da59d.setContent(html_cdeafef7f8c7b239d511e49f5742ece3);
+            
+        
+
+        marker_60861973df6c0afeed60e61b84adac37.bindPopup(popup_b90fce07d54e97ab915be0b3957da59d)
+        ;
+
+        
+    
+    
+            marker_60861973df6c0afeed60e61b84adac37.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_011d8aa87e8fb8615e7e22198ccd6e91 = L.marker(
+                [40.7487771, -73.9697356],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_4850327394b66a47a3a2c033477eed0a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_314388708bd07659014b6601c8f46fb5 = $(`<div id="html_314388708bd07659014b6601c8f46fb5" style="width: 100.0%; height: 100.0%;">Node: 248708582<br>Week: 2024-11-11<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 5<br>Outcome: false_positive</div>`)[0];
+                popup_4850327394b66a47a3a2c033477eed0a.setContent(html_314388708bd07659014b6601c8f46fb5);
+            
+        
+
+        marker_011d8aa87e8fb8615e7e22198ccd6e91.bindPopup(popup_4850327394b66a47a3a2c033477eed0a)
+        ;
+
+        
+    
+    
+            marker_011d8aa87e8fb8615e7e22198ccd6e91.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0eef8a84565c274929adabd7aa52eda7 = L.marker(
+                [40.849541, -73.936397],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_c7fe67c2dabc09ef0e0650642842d7a3 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1ef301641a858e4deca9bdfec80c9338 = $(`<div id="html_1ef301641a858e4deca9bdfec80c9338" style="width: 100.0%; height: 100.0%;">Node: 42428094<br>Week: 2024-12-09<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_c7fe67c2dabc09ef0e0650642842d7a3.setContent(html_1ef301641a858e4deca9bdfec80c9338);
+            
+        
+
+        marker_0eef8a84565c274929adabd7aa52eda7.bindPopup(popup_c7fe67c2dabc09ef0e0650642842d7a3)
+        ;
+
+        
+    
+    
+            marker_0eef8a84565c274929adabd7aa52eda7.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_63e8eae75030832296ad380ccedb7ce4 = L.marker(
+                [40.7528125, -73.9792873],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_b31a57270fd26f5289f87b8065f566f5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_9b89ae29b2c16367b59c095d4a7e934b = $(`<div id="html_9b89ae29b2c16367b59c095d4a7e934b" style="width: 100.0%; height: 100.0%;">Node: 42445916<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_b31a57270fd26f5289f87b8065f566f5.setContent(html_9b89ae29b2c16367b59c095d4a7e934b);
+            
+        
+
+        marker_63e8eae75030832296ad380ccedb7ce4.bindPopup(popup_b31a57270fd26f5289f87b8065f566f5)
+        ;
+
+        
+    
+    
+            marker_63e8eae75030832296ad380ccedb7ce4.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_512c207ed47446639758a0847171cef1 = L.marker(
+                [40.7573424, -73.9860116],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_713a92d53b7be2ddeaedec50d8ec99b6 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_a77d341044b60b816c0d36961d84390a = $(`<div id="html_a77d341044b60b816c0d36961d84390a" style="width: 100.0%; height: 100.0%;">Node: 42439984<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_713a92d53b7be2ddeaedec50d8ec99b6.setContent(html_a77d341044b60b816c0d36961d84390a);
+            
+        
+
+        marker_512c207ed47446639758a0847171cef1.bindPopup(popup_713a92d53b7be2ddeaedec50d8ec99b6)
+        ;
+
+        
+    
+    
+            marker_512c207ed47446639758a0847171cef1.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8674a1ae0fb5f918fa1d9273da92b4e2 = L.marker(
+                [40.762185, -73.9936069],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_7f339f362d5d7e7b71da96329860b13d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_8b7374393b1e84e46d1d9dcc8c358278 = $(`<div id="html_8b7374393b1e84e46d1d9dcc8c358278" style="width: 100.0%; height: 100.0%;">Node: 42455761<br>Week: 2024-11-04<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_7f339f362d5d7e7b71da96329860b13d.setContent(html_8b7374393b1e84e46d1d9dcc8c358278);
+            
+        
+
+        marker_8674a1ae0fb5f918fa1d9273da92b4e2.bindPopup(popup_7f339f362d5d7e7b71da96329860b13d)
+        ;
+
+        
+    
+    
+            marker_8674a1ae0fb5f918fa1d9273da92b4e2.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_16d8ce3473537d391432fb7b30300740 = L.marker(
+                [40.7893167, -73.9433978],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9ac8346763c1dc167faeb2f539aa45a0 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_a778d72d2a8a13896a13e4f5b72fa679 = $(`<div id="html_a778d72d2a8a13896a13e4f5b72fa679" style="width: 100.0%; height: 100.0%;">Node: 42436627<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_9ac8346763c1dc167faeb2f539aa45a0.setContent(html_a778d72d2a8a13896a13e4f5b72fa679);
+            
+        
+
+        marker_16d8ce3473537d391432fb7b30300740.bindPopup(popup_9ac8346763c1dc167faeb2f539aa45a0)
+        ;
+
+        
+    
+    
+            marker_16d8ce3473537d391432fb7b30300740.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e3fb79c847f37529ed152e2624c53eed = L.marker(
+                [40.7184492, -74.0005519],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_49654e5aa53aaa8936560e93d4a23693 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_29a6f63ddde5785d74d6ba8d815e6556 = $(`<div id="html_29a6f63ddde5785d74d6ba8d815e6556" style="width: 100.0%; height: 100.0%;">Node: 5706569898<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 0.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_49654e5aa53aaa8936560e93d4a23693.setContent(html_29a6f63ddde5785d74d6ba8d815e6556);
+            
+        
+
+        marker_e3fb79c847f37529ed152e2624c53eed.bindPopup(popup_49654e5aa53aaa8936560e93d4a23693)
+        ;
+
+        
+    
+    
+            marker_e3fb79c847f37529ed152e2624c53eed.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_542a0640f45ec69d550b9a649485dae5 = L.marker(
+                [40.7925561, -73.9410289],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_e233d359f88c2f046606027e2b31a304 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_8a3eddd7705afb33a81c65140781a28c = $(`<div id="html_8a3eddd7705afb33a81c65140781a28c" style="width: 100.0%; height: 100.0%;">Node: 42443072<br>Week: 2024-11-18<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_e233d359f88c2f046606027e2b31a304.setContent(html_8a3eddd7705afb33a81c65140781a28c);
+            
+        
+
+        marker_542a0640f45ec69d550b9a649485dae5.bindPopup(popup_e233d359f88c2f046606027e2b31a304)
+        ;
+
+        
+    
+    
+            marker_542a0640f45ec69d550b9a649485dae5.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_538960c394eb3674a48bc52daa04da07 = L.marker(
+                [40.7534805, -73.9808792],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_b124a85939042751b25a51fedfaae360 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bdc5d94c059c66794152886f92570c98 = $(`<div id="html_bdc5d94c059c66794152886f92570c98" style="width: 100.0%; height: 100.0%;">Node: 42437358<br>Week: 2024-12-16<br>Relative risk: Lower relative risk<br>Actual next-week target: 1<br>Previous 4-week crashes: 1.0<br>Street count: 4<br>Outcome: true_positive</div>`)[0];
+                popup_b124a85939042751b25a51fedfaae360.setContent(html_bdc5d94c059c66794152886f92570c98);
+            
+        
+
+        marker_538960c394eb3674a48bc52daa04da07.bindPopup(popup_b124a85939042751b25a51fedfaae360)
+        ;
+
+        
+    
+    
+            marker_538960c394eb3674a48bc52daa04da07.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4c6fee7d2a298974053b618cc5fc8f03 = L.marker(
+                [40.7445045, -73.9811202],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_9fd286fc5074bd4622187c370df187af = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_d728223c1aa4673117050a366601fe50 = $(`<div id="html_d728223c1aa4673117050a366601fe50" style="width: 100.0%; height: 100.0%;">Node: 42446933<br>Week: 2024-10-28<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 3.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_9fd286fc5074bd4622187c370df187af.setContent(html_d728223c1aa4673117050a366601fe50);
+            
+        
+
+        marker_4c6fee7d2a298974053b618cc5fc8f03.bindPopup(popup_9fd286fc5074bd4622187c370df187af)
+        ;
+
+        
+    
+    
+            marker_4c6fee7d2a298974053b618cc5fc8f03.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e71f4af6511640d78d367e73230373fd = L.marker(
+                [40.7652359, -73.9578431],
+                {
+}
+            ).addTo(map_2a46f8b4e62233a050a1e91596f50036);
+        
+    
+        var popup_6436cc1bd7dd2f66537fd1e42e26a7f4 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_5429c4066140a5fed47e40ad829b5158 = $(`<div id="html_5429c4066140a5fed47e40ad829b5158" style="width: 100.0%; height: 100.0%;">Node: 42431684<br>Week: 2024-11-25<br>Relative risk: Lower relative risk<br>Actual next-week target: 0<br>Previous 4-week crashes: 2.0<br>Street count: 4<br>Outcome: false_positive</div>`)[0];
+                popup_6436cc1bd7dd2f66537fd1e42e26a7f4.setContent(html_5429c4066140a5fed47e40ad829b5158);
+            
+        
+
+        marker_e71f4af6511640d78d367e73230373fd.bindPopup(popup_6436cc1bd7dd2f66537fd1e42e26a7f4)
+        ;
+
+        
+    
+    
+            marker_e71f4af6511640d78d367e73230373fd.bindTooltip(
+                `<div>
+                     Lower relative risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>
