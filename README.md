@@ -49,7 +49,7 @@ originally trained on a GPU in Colab.
 
 ## Full pipeline (only needed to retrain or update the model)
 
-1. **Notebook 1** (not included here) collects the raw crash, OSM, and
+1. **Notebook 1**  collects the raw crash, OSM, and
    weather data into `data/raw/` and `data/processed/`.
 2. **Notebook 2** (`SafeCross_AI_Notebook2.ipynb`) builds the modeling
    panel, engineers features (with a missingness audit for the OSM
