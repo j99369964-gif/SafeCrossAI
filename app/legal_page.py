@@ -23,12 +23,9 @@ try:
 except StreamlitAPIException:
     pass
 
-CONTACT_EMAIL = "your-email@example.com"  # TODO: replace with a real contact address
+CONTACT_EMAIL = "j99369964@gmail.com" 
 
 st.title("Terms of use and privacy")
-
-if CONTACT_EMAIL.endswith("example.com"):
-    st.warning("Draft text: set `CONTACT_EMAIL` in `app/legal_page.py` and review this page before sharing the app publicly.")
 
 st.markdown(
     f"""
