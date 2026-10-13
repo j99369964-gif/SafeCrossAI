@@ -15,6 +15,29 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+# The pure scoring / presentation logic lives in safecross_core.py (no Streamlit import), so the PWA's API
+# server can use exactly the same code. It is re-exported here so existing imports from app_utils keep working.
+from safecross_core import (  # noqa: F401
+    FALLBACK_SIGNAL_FEATURES,
+    NON_SIGNAL_FEATURES,
+    NON_SIGNAL_PREFIXES,
+    REGION_META,
+    TRANSFER_BLANKED_FEATURES,
+    add_intersection_labels,
+    merge_intersection_info,
+    assign_risk_tier,
+    build_risk_grid,
+    candidate_measures_for_row,
+    force_cpu_for_deployment,
+    format_intersection_label,
+    is_intersection_signal,
+    predict_risk,
+    same_region_rows,
+    score_region,
+    top_signals_for_row,
+    unvalidated_note,
+)
+
 # --- Project paths ----------------------------------------------------
 # app_utils.py lives in app/, so the repo root is one level up.
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -25,32 +48,34 @@ DEMO_DATA_PATH = REPO_ROOT / "data" / "sample" / "safecross_app_demo.csv"
 TEST_METRICS_PATH = REPO_ROOT / "reports" / "metrics" / "selected_model_test_metrics.json"
 IMPORTANCE_PATH = REPO_ROOT / "reports" / "notebook_02_03" / "permutation_importance.csv"
 
-# A small, documented fallback list used to rank "top model signals" only if
-# the optional permutation_importance.csv isn't present in this deployment.
-# Ordered by what Notebook 2's ablation results showed mattered most: recent
-# crash history first, then road-design context.
-FALLBACK_SIGNAL_FEATURES = [
-    "crashes_last_4w",
-    "crashes_last_8w",
-    "weeks_since_last_crash",
-    "max_connecting_speed_limit",
-    "street_count",
-    "max_connecting_lanes",
-    "touches_oneway_street",
-    "is_traffic_signal",
-]
 
 
-# Features that describe WHERE or WHEN a row is rather than the intersection itself.
-# Weather and season are identical for every intersection in a given week, and
-# coordinates are only a location proxy, so none of them can explain why one
-# intersection ranks above another. They are skipped when picking "top signals".
-NON_SIGNAL_FEATURES = {"latitude", "longitude"}
-NON_SIGNAL_PREFIXES = ("current_week_", "week_of_year")
 
 
-def is_intersection_signal(feature: str) -> bool:
-    return feature not in NON_SIGNAL_FEATURES and not feature.startswith(NON_SIGNAL_PREFIXES)
+
+
+# --- Regions ----------------------------------------------------------------
+# "nyc" is the area the model was trained AND validated on. Every other region is a TRANSFER region:
+# the same NYC-trained model applied to roads it never saw crash data for. For those rows
+#   * crash-history features and latitude/longitude are blanked before scoring (they have no crash
+#     history, and Westchester lies north of every location the model trained on), so the model's own
+#     imputer treats them as "typical" and the ranking comes from road design alone;
+#   * risk tiers and percentiles are computed WITHIN the region. Scores built from different information
+#     (NYC: with crash history; Westchester: road design only) cannot be ranked against each other;
+#   * everything shown to the user is labelled "unvalidated".
+DEMO_DATA_PATH_WESTCHESTER = REPO_ROOT / "data" / "sample" / "safecross_app_demo_westchester.csv"
+# Street names, sidewalk, bike lane, lighting... written by scripts/build_intersection_info.py (optional).
+# Height of one area-view square in degrees of latitude (0.005 is about 550 m). Smaller = finer detail, more squares.
+GRID_CELL_DEGREES = 0.005
+INTERSECTION_INFO_PATH = REPO_ROOT / "data" / "sample" / "intersection_info.csv"
+
+REGIONS = {
+    key: {**meta, "path": DEMO_DATA_PATH if key == "nyc" else DEMO_DATA_PATH_WESTCHESTER}
+    for key, meta in REGION_META.items()
+}
+
+
+
 
 
 # --- Cached loaders ------------------------------------------------------
@@ -68,26 +93,6 @@ def load_model_bundle() -> dict:
     return bundle
 
 
-def force_cpu_for_deployment(model) -> None:
-    """Notebook 2 may train XGBoost with device="cuda" on a Colab GPU. This
-    deployment (Streamlit Community Cloud) has no GPU, so inference must run
-    on CPU. This does NOT retrain the model — it only changes where the
-    already-fitted booster runs predictions. Safely does nothing for models
-    that don't have these XGBoost-specific methods (logistic regression,
-    LightGBM, MLP, random forest)."""
-    if hasattr(model, "set_params"):
-        try:
-            model.set_params(device="cpu")
-        except (ValueError, TypeError):
-            # Not every estimator recognizes a "device" parameter — that's
-            # fine, it just means this isn't the GPU-capable XGBoost model.
-            pass
-
-    if hasattr(model, "get_booster"):
-        try:
-            model.get_booster().set_param({"device": "cpu"})
-        except Exception:
-            pass
 
 
 @st.cache_data(show_spinner=False)
@@ -141,32 +146,12 @@ def load_signal_features(numeric_features: list[str]) -> list[str]:
     ]
 
 
-# --- Prediction and presentation -----------------------------------------
-def predict_risk(bundle: dict, rows: pd.DataFrame) -> np.ndarray:
-    """Runs the frozen preprocessor + model on raw feature rows and returns
-    predicted probabilities. This is the ONLY place inference happens."""
-    raw_features = bundle["raw_features"]
-    transformed = bundle["preprocessor"].transform(rows[raw_features])
-    return bundle["model"].predict_proba(transformed)[:, 1]
 
 
-def add_intersection_labels(frame: pd.DataFrame) -> pd.DataFrame:
-    """Adds a human-readable intersection_label to every row at once (vectorized).
-    Uses the exported intersection_label column where present, otherwise
-    falls back to node id + coordinates. Replaces a row-by-row .apply(), which
-    is far too slow to repeat on every interaction once there are tens of
-    thousands of intersections."""
-    frame = frame.copy()
-    fallback = (
-        "OSM node " + frame["node_id"].astype(str)
-        + " | " + frame["latitude"].map("{:.4f}".format)
-        + ", " + frame["longitude"].map("{:.4f}".format)
-    )
-    if "intersection_label" in frame.columns:
-        frame["intersection_label"] = frame["intersection_label"].where(frame["intersection_label"].notna(), fallback).astype(str)
-    else:
-        frame["intersection_label"] = fallback
-    return frame
+
+
+
+
 
 
 @st.cache_data(show_spinner="Scoring intersections...")
@@ -176,155 +161,27 @@ def load_scored_demo_data() -> pd.DataFrame:
     top-level script body: with ~40,000 citywide intersections it would be
     repeated on every interaction."""
     bundle = load_model_bundle()
-    data = load_demo_data().copy()
-    data["predicted_probability"] = predict_risk(bundle, data)
-    data["risk_tier"] = assign_risk_tier(data["predicted_probability"])
-    data["risk_percentile"] = data["predicted_probability"].rank(pct=True) * 100
-    return add_intersection_labels(data)
+    parts = [score_region(bundle, load_demo_data(), "nyc")]
+    # Transfer regions are optional: the app works with only the NYC file.
+    for region_key, region in REGIONS.items():
+        if region_key != "nyc" and region["path"].exists():
+            parts.append(score_region(bundle, pd.read_csv(region["path"]), region_key))
+    info = pd.read_csv(INTERSECTION_INFO_PATH, dtype={"node_id": str}) if INTERSECTION_INFO_PATH.exists() else None
+    return add_intersection_labels(merge_intersection_info(pd.concat(parts, ignore_index=True), info))
 
 
-def assign_risk_tier(probability: pd.Series) -> pd.Series:
-    """Converts probabilities into a RELATIVE risk tier — ranked against the
-    other rows currently loaded, not a literal "X% chance of a crash".
-    Calibration is weak enough that presenting raw probabilities as literal
-    odds would overstate precision (see Notebook 2's guardrails)."""
-    percentile = probability.rank(pct=True) * 100
-
-    conditions = [percentile >= 90, percentile >= 75, percentile >= 50]
-    labels = ["Highest-priority (top 10%)", "Elevated relative risk", "Moderate relative risk"]
-
-    return pd.Series(np.select(conditions, labels, default="Lower relative risk"), index=probability.index)
 
 
-def top_signals_for_row(
-    row: pd.Series,
-    signal_features: list[str],
-    top_n: int = 3,
-    reference: pd.DataFrame | None = None,
-    min_percentile: float = 0.5,
-) -> list[tuple[str, float, float | None]]:
-    """Simple, explainable approximation of "what likely drove this row's
-    ranking": the top_n candidate signal features whose values are most
-    unusually HIGH for this row. Returns (feature, value, percentile) triples,
-    where percentile is the share of rows in `reference` with a strictly lower
-    value. Ranking by percentile rather than raw value matters because features
-    are in different units (a crash count of 2 vs. a 35 mph speed limit). Not a
-    per-row attribution method (e.g. SHAP): good enough to point a reviewer
-    toward likely drivers, not proof of causation.
-
-    When `reference` is given, only features at or above `min_percentile` (default:
-    the median) are returned, so a value that is LOW for this intersection is
-    never presented as a "signal". An intersection with none returns an empty list."""
-    scored = []
-    for feature in signal_features:
-        if feature not in row or pd.isna(row[feature]):
-            continue
-        try:
-            value = float(row[feature])
-        except (TypeError, ValueError):
-            continue  # text features can't be ranked this way
-        percentile = None
-        if reference is not None and feature in reference.columns:
-            percentile = float((reference[feature] < value).mean())
-        scored.append((feature, value, percentile))
-
-    if reference is not None:
-        scored = [item for item in scored if item[2] is not None and item[2] >= min_percentile]
-        scored.sort(key=lambda item: (item[2] is not None, item[2] or 0.0, item[1]), reverse=True)
-    else:
-        scored.sort(key=lambda item: item[1], reverse=True)
-    return scored[:top_n]
 
 
-def candidate_measures_for_row(row: pd.Series) -> list[str]:
-    """Simple, transparent rule-based suggestions for further review — never
-    a model output and never a final recommendation. Mirrors the same rules
-    used in Notebook 3 so the app and the notebook tell a consistent story."""
-    measures = []
-
-    if row.get("pedestrian_casualty_crashes_last_8w", 0) and row["pedestrian_casualty_crashes_last_8w"] > 0:
-        measures.append("Review crosswalk marking/visibility")
-
-    if row.get("cyclist_casualty_crashes_last_8w", 0) and row["cyclist_casualty_crashes_last_8w"] > 0:
-        measures.append("Review bike-lane/intersection conflict design")
-
-    max_speed = row.get("max_connecting_speed_limit")
-    if max_speed is not None and pd.notna(max_speed) and max_speed >= 35:
-        measures.append("Review traffic-calming / speed-limit appropriateness")
-
-    if row.get("is_traffic_signal", 0) == 0 and row.get("street_count", 0) and row["street_count"] >= 4:
-        measures.append("Review whether signal or stop control is warranted")
-
-    if not measures:
-        measures.append("No rule-based candidate measure triggered — recommend manual site review")
-
-    return measures
 
 
-def build_risk_grid(rows: pd.DataFrame, target_bins: int = 30) -> dict:
-    """Aggregates point-level rows into a grid of square cells, returned as a
-    GeoJSON FeatureCollection with each cell\'s mean predicted probability,
-    dominant risk tier, and point count baked into its properties. Used to
-    render a choropleth-style overview before zooming in to individual
-    intersection markers — showing thousands of overlapping circle markers
-    at a city-wide zoom level is unreadable, whereas an area-level color
-    gives a usable overview at that scale.
-
-    Pure-Python/pandas — no geopandas/shapely dependency, since the cells
-    are simple axis-aligned rectangles, not real geometry operations."""
-    if rows.empty or not {"latitude", "longitude", "predicted_probability"}.issubset(rows.columns):
-        return {"type": "FeatureCollection", "features": []}
-
-    lat_span = max(rows["latitude"].max() - rows["latitude"].min(), 1e-6)
-    lon_span = max(rows["longitude"].max() - rows["longitude"].min(), 1e-6)
-    cell_size = max(lat_span, lon_span) / target_bins
-
-    grid_rows = rows.copy()
-    grid_rows["cell_lat"] = (grid_rows["latitude"] // cell_size) * cell_size
-    grid_rows["cell_lon"] = (grid_rows["longitude"] // cell_size) * cell_size
-
-    cell_groups = grid_rows.groupby(["cell_lat", "cell_lon"])
-
-    features = []
-    for (cell_lat, cell_lon), cell_points in cell_groups:
-        mean_probability = float(cell_points["predicted_probability"].mean())
-        dominant_tier = cell_points["risk_tier"].mode().iat[0] if "risk_tier" in cell_points else None
-
-        polygon = [
-            [
-                [cell_lon, cell_lat],
-                [cell_lon + cell_size, cell_lat],
-                [cell_lon + cell_size, cell_lat + cell_size],
-                [cell_lon, cell_lat + cell_size],
-                [cell_lon, cell_lat],
-            ]
-        ]
-
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {"type": "Polygon", "coordinates": polygon},
-                "properties": {
-                    "mean_probability": mean_probability,
-                    "dominant_tier": dominant_tier,
-                    "point_count": int(len(cell_points)),
-                },
-            }
-        )
-
-    return {"type": "FeatureCollection", "features": features}
 
 
-def format_intersection_label(row: pd.Series) -> str:
-    """Falls back to node id + coordinates if a human-readable
-    intersection_label column wasn't included in the demo export."""
-    if "intersection_label" in row and pd.notna(row["intersection_label"]):
-        return str(row["intersection_label"])
-    return f"OSM node {row['node_id']} | {row['latitude']:.4f}, {row['longitude']:.4f}"
 
 
 @st.cache_data(show_spinner=False)
 def cached_risk_grid(rows: pd.DataFrame) -> dict:
     """build_risk_grid, cached. Pass only the columns it needs
     (latitude, longitude, predicted_probability, risk_tier) so hashing is cheap."""
-    return build_risk_grid(rows)
+    return build_risk_grid(rows, cell_size=GRID_CELL_DEGREES)

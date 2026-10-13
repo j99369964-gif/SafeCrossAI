@@ -19,6 +19,7 @@ import branca.colormap
 import folium
 import pandas as pd
 import streamlit as st
+from streamlit.errors import StreamlitAPIException
 from branca.element import MacroElement, Template
 from streamlit_folium import st_folium
 
@@ -34,10 +35,17 @@ from app_utils import (  # noqa: E402
     load_scored_demo_data,
     load_signal_features,
     load_test_metrics,
+    same_region_rows,
     top_signals_for_row,
+    unvalidated_note,
 )
 
-st.set_page_config(page_title="SafeCross AI", layout="wide")
+# When this file runs as a page of the multipage app, streamlit_app.py has already configured the page
+# and a second call can raise, so ignore that case. Run on its own, this still configures the page.
+try:
+    st.set_page_config(page_title="SafeCross AI", layout="wide")
+except StreamlitAPIException:
+    pass
 
 # --- Load everything up front (all cached; fast after first load) --------
 bundle = load_model_bundle()
@@ -69,7 +77,7 @@ explore_tab, model_tab, limitations_tab = st.tabs(["Explore", "Model", "Limitati
 # =========================== EXPLORE TAB ==================================
 with explore_tab:
     st.header("How to explore")
-    st.write("1. Filter by risk level and snapshot week in the sidebar")
+    st.write("1. Filter by area, risk level and snapshot week in the sidebar")
     st.write("2. Zoom into an area to reveal individual intersections")
     st.write("3. Hover over an intersection for details")
     st.write("4. Select an intersection in the sidebar (or look one up by OSM node id) for a deeper explanation")
@@ -87,6 +95,15 @@ with explore_tab:
             selected_week = None
             week_rows = demo_data.copy()
 
+        # Areas: New York City (validated) and, when its file is present, Westchester County (an
+        # unvalidated transfer estimate). Risk tiers are computed within each area.
+        if "region_label" in week_rows.columns:
+            area_options = list(dict.fromkeys(week_rows["region_label"].tolist()))
+            selected_areas = st.multiselect("Areas", area_options, default=area_options)
+            week_rows = week_rows.loc[week_rows["region_label"].isin(selected_areas)].copy()
+        else:
+            selected_areas = []
+
         tier_options = [
             "Highest-priority (top 10%)",
             "Elevated relative risk",
@@ -95,8 +112,10 @@ with explore_tab:
         ]
         selected_tiers = st.multiselect("Filter by relative risk tier", tier_options, default=tier_options)
 
+        # Sorted by the WITHIN-AREA percentile (then probability to break ties): raw probabilities from
+        # different areas come from different information and are not on one scale.
         filtered_rows = week_rows.loc[week_rows["risk_tier"].isin(selected_tiers)].sort_values(
-            "predicted_probability", ascending=False
+            ["risk_percentile", "predicted_probability"], ascending=False
         )
 
         # One selector drives BOTH the map highlight and the explanation
@@ -133,6 +152,19 @@ with explore_tab:
     # year, so this doesn't go stale the next time the demo data changes.
     snapshot_metric.metric("Snapshot week", str(selected_week) if selected_week is not None else "-")
 
+    unvalidated_areas = (
+        sorted(set(filtered_rows.loc[~filtered_rows["validated"].astype(bool), "region_label"]))
+        if "validated" in filtered_rows.columns
+        else []
+    )
+    if unvalidated_areas:
+        st.warning(unvalidated_note(unvalidated_areas))
+    if "region_label" in filtered_rows.columns and filtered_rows["region_label"].nunique() > 1:
+        st.caption(
+            "Intersections per area: "
+            + " · ".join(f"{name}: {count:,}" for name, count in filtered_rows["region_label"].value_counts().items())
+        )
+
     st.subheader("Map")
     st.caption(
         "Zoomed out: area-level risk. Zoom in and pan to load individual intersections "
@@ -159,12 +191,12 @@ with explore_tab:
         # frequently as the user pans, and canvas rendering handles that
         # churn far more cheaply, which noticeably reduces stutter.
         # Starting zoom from the data's extent so the whole study area is visible:
-        # about the whole city -> 10, a borough -> 11, smaller -> 12. All of these
-        # are below ZOOM_SWITCH_LEVEL, so the area view is what shows first.
+        # NYC plus Westchester -> 9, about the whole city -> 10, a borough -> 11, smaller -> 12.
+        # All of these are below ZOOM_SWITCH_LEVEL, so the area view is what shows first.
         lat_span = filtered_rows["latitude"].max() - filtered_rows["latitude"].min()
         lon_span = (filtered_rows["longitude"].max() - filtered_rows["longitude"].min()) * 0.76  # cos(40.7 deg)
         extent = max(lat_span, lon_span)
-        initial_zoom = 10 if extent > 0.3 else 11 if extent > 0.12 else 12
+        initial_zoom = 9 if extent > 0.6 else 10 if extent > 0.3 else 11 if extent > 0.12 else 12
 
         risk_map = folium.Map(
             location=map_center,
@@ -184,7 +216,12 @@ with explore_tab:
         # --- Layer 1: grid choropleth (shown when zoomed out) ---------
         grid_layer = folium.FeatureGroup(name="Area risk", show=True)
 
-        risk_grid = cached_risk_grid(filtered_rows[["latitude", "longitude", "predicted_probability", "risk_tier"]])
+        # The grid is colored by the average WITHIN-AREA risk percentile, not the raw probability, so cells in
+        # different areas are on the same 0-1 scale (raw probabilities from different areas are not comparable).
+        grid_input = filtered_rows[["latitude", "longitude", "risk_tier"]].assign(
+            predicted_probability=filtered_rows["risk_percentile"] / 100.0
+        )
+        risk_grid = cached_risk_grid(grid_input)
         probabilities = [feature["properties"]["mean_probability"] for feature in risk_grid["features"]]
 
         if probabilities:
@@ -211,7 +248,7 @@ with explore_tab:
                 ),
             ).add_to(grid_layer)
 
-            color_scale.caption = "Mean predicted risk (area average)"
+            color_scale.caption = "Average relative risk percentile (within each area)"
             color_scale.add_to(risk_map)
 
         grid_layer.add_to(risk_map)
@@ -235,6 +272,18 @@ with explore_tab:
                 return [0] * len(filtered_rows)
             return filtered_rows[name].fillna(0).astype(int).tolist()
 
+        area_names = list(dict.fromkeys(filtered_rows["region_label"].tolist())) if "region_label" in filtered_rows.columns else []
+        area_code = (
+            filtered_rows["region_label"].map({name: i for i, name in enumerate(area_names)}).astype(int).tolist()
+            if area_names
+            else [0] * len(filtered_rows)
+        )
+        unvalidated_flags = (
+            (~filtered_rows["validated"].astype(bool)).astype(int).tolist()
+            if "validated" in filtered_rows.columns
+            else [0] * len(filtered_rows)
+        )
+
         selected_matches = (filtered_rows["intersection_label"] == selected_label).to_numpy()
         selected_index = int(selected_matches.argmax()) if selected_label and selected_matches.any() else -1
 
@@ -246,6 +295,9 @@ with explore_tab:
             "crashes4w": integer_column("crashes_last_4w"),
             "streets": integer_column("street_count"),
             "label": filtered_rows["intersection_label"].tolist(),
+            "unval": unvalidated_flags,
+            "area": area_code,
+            "areaNames": area_names,
             "selected": selected_index,
         }
 
@@ -284,10 +336,14 @@ with explore_tab:
                 return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             }
             function tooltipFor(i) {
+                // An area with no crash history must not show "0 crashes", which would read as "no crashes happened".
+                var history = D.unval[i]
+                    ? "<i>Unvalidated estimate: road design only, no crash history</i><br>Area: " + esc(D.areaNames[D.area[i]]) + "<br>"
+                    : "Crashes in previous 4 weeks: " + D.crashes4w[i] + "<br>";
                 return "<b>" + esc(D.label[i]) + "</b><br>" +
                        esc(TIER_NAMES[D.tier[i]]) + "<br>" +
                        "Relative risk percentile: " + D.pct[i] + "th<br>" +
-                       "Crashes in previous 4 weeks: " + D.crashes4w[i] + "<br>" +
+                       history +
                        "Connected streets: " + D.streets[i];
             }
 
@@ -322,12 +378,14 @@ with explore_tab:
                     if (!active[i]) {
                         var selected = (i === D.selected);
                         var color = TIER_COLORS[D.tier[i]];
+                        var unvalidated = D.unval[i] === 1;
                         var marker = L.circleMarker([lat, lng], {
                             radius: selected ? 7 : 6,
                             color: color,
                             fillColor: color,
                             fill: true,
-                            fillOpacity: 0.9,
+                            fillOpacity: unvalidated ? 0.4 : 0.9,
+                            dashArray: unvalidated ? "3" : null,
                             weight: selected ? 3 : 1
                         }).bindTooltip(tooltipFor(i));
                         marker.addTo(markerLayer);
@@ -405,7 +463,7 @@ with explore_tab:
     # more" always means "more of THIS filter", not stale rows from a
     # previous selection.
     PAGE_SIZE = 50
-    filter_signature = (selected_week, tuple(sorted(selected_tiers)))
+    filter_signature = (selected_week, tuple(sorted(selected_tiers)), tuple(sorted(selected_areas)))
     if st.session_state.get("table_filter_signature") != filter_signature:
         st.session_state.table_filter_signature = filter_signature
         st.session_state.table_rows_shown = PAGE_SIZE
@@ -413,10 +471,14 @@ with explore_tab:
     rows_shown = min(st.session_state.table_rows_shown, len(filtered_rows))
     visible_rows = filtered_rows.head(rows_shown)
 
+    table_columns = ["intersection_label", "risk_tier", "risk_percentile"]
+    if "region_label" in visible_rows.columns and visible_rows["region_label"].nunique() > 0 and len(selected_areas) > 1:
+        table_columns.insert(1, "region_label")
     st.dataframe(
-        visible_rows[["intersection_label", "risk_tier", "risk_percentile"]].rename(
+        visible_rows[table_columns].rename(
             columns={
                 "intersection_label": "Intersection",
+                "region_label": "Area",
                 "risk_tier": "Relative risk",
                 "risk_percentile": "Percentile",
             }
@@ -442,10 +504,15 @@ with explore_tab:
         explanation_columns = st.columns(3)
         explanation_columns[0].metric("Relative risk", selected_row["risk_tier"])
         explanation_columns[1].metric("Percentile", f"{selected_row['risk_percentile']:.1f}")
-        if "crashes_last_4w" in selected_row:
+        selected_unvalidated = "validated" in selected_row.index and not bool(selected_row["validated"])
+        if selected_unvalidated:
+            explanation_columns[2].metric("Crashes, last 4 weeks", "n/a")
+            st.info(unvalidated_note([selected_row["region_label"]]))
+        elif "crashes_last_4w" in selected_row and pd.notna(selected_row["crashes_last_4w"]):
             explanation_columns[2].metric("Crashes, last 4 weeks", int(selected_row["crashes_last_4w"]))
 
-        signals = top_signals_for_row(selected_row, signal_features, reference=week_rows)
+        # Compare against intersections in the SAME area only.
+        signals = top_signals_for_row(selected_row, signal_features, reference=same_region_rows(week_rows, selected_row))
         if signals:
             st.markdown("**Top model signals for this intersection:**")
             for feature, value, percentile in signals:
@@ -483,6 +550,11 @@ with model_tab:
         "relative risk tier."
     )
 
+    st.warning(
+        "These test results describe **New York City only**. Westchester County has no crash data in this project, so "
+        "its rankings are an unvalidated transfer of the NYC model (road design only) and none of these numbers apply to it."
+    )
+
     if test_metrics:
         st.subheader("Held-out test performance")
         metrics_to_show = {
@@ -499,6 +571,14 @@ with limitations_tab:
     st.subheader("Limitations")
     st.markdown(
         """
+- **Westchester County is unvalidated.** The model was trained on New York City
+  crashes. Westchester has no crash records with coordinates in this project (the
+  public DMV crash file has no locations), so its intersections are scored on road
+  design alone: crash history and location are left blank and the model treats them
+  as typical. The result compares Westchester intersections with each other, is
+  not comparable with New York City, and has not been checked against real
+  crashes. Suburban roads differ from city streets in ways the model never saw.
+  It should be replaced by a model trained on real Westchester crashes.
 - **Not exposure-normalized.** Predictions do not account for pedestrian or
   vehicle volume, since that data is not yet directly included. A busy but
   well-managed intersection can rank similarly to a quiet, poorly-designed one.
