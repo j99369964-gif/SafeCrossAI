@@ -1,9 +1,9 @@
 // Explore the risk map: an area-level overview when zoomed out, individual intersections when zoomed in.
 // The server does the filtering and the capping; this view only draws what it is sent.
-import { h } from "./dom.js";
+import { h, pageHeader } from "./dom.js";
 import * as api from "./api.js";
 import { mountSharedMap, onMapsAuthFailure, metersForPixels, describeMapsError } from "./gmaps.js";
-import { TIER_COLORS, TIER_NAMES, renderIntersectionDetail, loadingBody, errorBody } from "./detail.js";
+import { TIER_COLORS, TIER_NAMES, renderIntersectionDetail, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
 
 export const ZOOM_SWITCH = 14;
 
@@ -33,9 +33,9 @@ export function riskColor(value) {
 
 export function mountExploreView(root, ctx) {
   const { config } = ctx;
-  const heading = h("h1", { tabindex: "-1" }, "Explore the risk map");
-  const page = h("section", { class: "page" }, heading,
-    h("p", { class: "muted" }, "Zoomed out you see how risk varies across areas. Zoom in to see individual intersections and tap one for details."));
+  const { header, heading } = pageHeader("Risk map · weekly snapshot", "Explore the risk map",
+    "Zoomed out you see how risk varies across areas. Zoom in to see individual intersections and tap one for details.");
+  const page = h("section", { class: "page" }, header);
   root.append(page);
 
   if (!config.mapsJsKey) {
@@ -64,8 +64,8 @@ export function mountExploreView(root, ctx) {
   const banner = h("div", { role: "status" });
   const summary = h("p", { class: "muted", role: "status", "aria-live": "polite" }, "Loading...");
   const mapMessage = h("div", {});
-  const mapHolder = h("div", {});
-  const sheetHost = h("div", {});
+  const mapHolder = h("div", {}, h("div", { class: "map map-loading", "aria-hidden": "true" }, "Loading map"));
+  const sheetHost = h("div", { class: "sheet-host" });
 
   function chip(label, pressed, onToggle) {
     const button = h("button", { type: "button", class: "chip", "aria-pressed": pressed ? "true" : "false" }, label);
@@ -86,7 +86,7 @@ export function mountExploreView(root, ctx) {
   renderFilters();
 
   page.append(
-    h("div", { class: "card" }, h("h2", { style: "margin-top:0" }, "Areas"), areaChips, h("h2", {}, "Risk levels"), tierChips),
+    h("div", { class: "card filter-card" }, h("h2", {}, "Areas"), areaChips, h("h2", {}, "Risk levels"), tierChips),
     banner, summary, mapMessage, mapHolder,
     h("div", { class: "legend" }, TIER_NAMES.map((name, code) => h("span", {}, h("span", { class: "dot", style: `background:${TIER_COLORS[code]}` }), name))),
     sheetHost);
@@ -191,22 +191,21 @@ export function mountExploreView(root, ctx) {
   // ------------------------------------------------------------------ details sheet
   function closeSheet() {
     selectedId = null;
-    sheetHost.replaceChildren();
+    hideSheet(sheetHost);
     active.forEach(({ circle, point }, id) => circle.setOptions(styleFor(point, id)));
   }
   async function openSheet(id, point) {
     selectedId = id;
     active.forEach((entry, key) => entry.circle.setOptions(styleFor(entry.point, key)));
-    sheetHost.replaceChildren(h("div", { class: "sheet", role: "dialog", "aria-label": "Intersection details" }, loadingBody()));
+    showSheet(sheetHost, loadingBody());
     try {
       const detail = await api.getIntersection(id);
       if (destroyed || selectedId !== id) return;
-      const sheet = h("div", { class: "sheet", role: "dialog", "aria-label": "Intersection details" }, renderIntersectionDetail(detail, { onClose: closeSheet }));
-      sheetHost.replaceChildren(sheet);
+      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet }));
       const closeButton = sheet.querySelector(".sheet-close");
       if (closeButton) closeButton.focus();
     } catch (problem) {
-      if (!destroyed) sheetHost.replaceChildren(h("div", { class: "sheet", role: "alert" }, errorBody(problem.message, closeSheet)));
+      if (!destroyed) showSheet(sheetHost, errorBody(problem.message, closeSheet), { role: "alert" });
     }
   }
 

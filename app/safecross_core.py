@@ -22,12 +22,15 @@ REGION_META = {
 
 # A small, documented fallback list used to rank "top model signals" only if
 # the optional permutation_importance.csv isn't present in this deployment.
-# Ordered by what Notebook 2's ablation results showed mattered most: recent
-# crash history first, then road-design context.
+# Ordered by what Notebook 2 showed mattered most: long-run crash history first,
+# then recent history, then road-design context.
 FALLBACK_SIGNAL_FEATURES = [
-    "crashes_last_4w",
-    "crashes_last_8w",
+    "crashes_ewm_hl26w",
+    "crash_rate_all_history",
+    "crashes_last_52w",
     "weeks_since_last_crash",
+    "crashes_last_4w",
+    "neighbor_crashes_52w_400m",
     "max_connecting_speed_limit",
     "street_count",
     "max_connecting_lanes",
@@ -36,27 +39,85 @@ FALLBACK_SIGNAL_FEATURES = [
 ]
 
 # Features that describe WHERE or WHEN a row is rather than the intersection itself.
-# Weather and season are identical for every intersection in a given week, and
-# coordinates are only a location proxy, so none of them can explain why one
+# Season and the citywide crash totals are identical for every intersection in a given
+# week, and coordinates are only a location proxy, so none of them can explain why one
 # intersection ranks above another. They are skipped when picking "top signals".
+# ("current_week_" is the weather prefix older models used; kept so they still load.)
 NON_SIGNAL_FEATURES = {"latitude", "longitude"}
 
-NON_SIGNAL_PREFIXES = ("current_week_", "week_of_year")
+NON_SIGNAL_PREFIXES = ("current_week_", "week_of_year", "citywide_")
 
 def is_intersection_signal(feature: str) -> bool:
     return feature not in NON_SIGNAL_FEATURES and not feature.startswith(NON_SIGNAL_PREFIXES)
 
-TRANSFER_BLANKED_FEATURES = {
-    "latitude",
-    "longitude",
-    "crashes_last_1w",
-    "crashes_last_4w",
-    "crashes_last_8w",
-    "injuries_last_4w",
-    "pedestrian_casualty_crashes_last_8w",
-    "cyclist_casualty_crashes_last_8w",
-    "weeks_since_last_crash",
+
+class _CrashHistoryFeatures:
+    """The features a TRANSFER region (no crash records) has no values for, so they are blanked before scoring.
+
+    Decided by Notebook 2's naming rules rather than a hand-kept list, so a new crash-history feature can't be
+    forgotten here: anything derived from an area's own crash records names what it counts (crash, injury,
+    killed, casualty), and anything summed over nearby intersections starts with "neighbor_". Coordinates are
+    blanked too (transfer areas lie outside the training map). Citywide totals are NOT blanked: like the season,
+    build_westchester_assets.py copies them from the NYC snapshot week."""
+
+    MARKERS = ("crash", "injur", "killed", "casualt")
+
+    def __contains__(self, feature: object) -> bool:
+        if not isinstance(feature, str) or feature.startswith("citywide_"):
+            return False
+        return feature in ("latitude", "longitude") or feature.startswith("neighbor_") or any(marker in feature for marker in self.MARKERS)
+
+
+TRANSFER_BLANKED_FEATURES = _CrashHistoryFeatures()
+
+
+# Plain-language names for model features, used wherever a feature name is shown to a person.
+FEATURE_DISPLAY_NAMES = {
+    "crashes_last_1w": "Crashes this week",
+    "crashes_last_4w": "Crashes, last 4 weeks",
+    "crashes_last_8w": "Crashes, last 8 weeks",
+    "crashes_last_13w": "Crashes, last 13 weeks",
+    "crashes_last_26w": "Crashes, last 26 weeks",
+    "crashes_last_52w": "Crashes, last 52 weeks",
+    "crashes_last_104w": "Crashes, last 2 years",
+    "crash_weeks_last_52w": "Weeks with a crash, last 52 weeks",
+    "crash_weeks_last_156w": "Weeks with a crash, last 3 years",
+    "crash_rate_all_history": "Crashes per week since 2012",
+    "crashes_ewm_hl4w": "Crashes per week, recent trend",
+    "crashes_ewm_hl26w": "Crashes per week, past half-year trend",
+    "crashes_ewm_hl52w": "Crashes per week, past year trend",
+    "crashes_ewm_hl104w": "Crashes per week, two-year trend",
+    "injuries_last_4w": "Injuries, last 4 weeks",
+    "injuries_last_52w": "Injuries, last 52 weeks",
+    "injuries_ewm_hl52w": "Injuries per week, past year trend",
+    "killed_last_156w": "Deaths, last 3 years",
+    "pedestrian_casualty_crashes_last_8w": "Pedestrian injury crashes, last 8 weeks",
+    "pedestrian_casualty_crashes_last_52w": "Pedestrian injury crashes, last 52 weeks",
+    "pedestrian_casualty_ewm_hl52w": "Pedestrian injury crashes per week, past year trend",
+    "cyclist_casualty_crashes_last_8w": "Cyclist injury crashes, last 8 weeks",
+    "cyclist_casualty_crashes_last_52w": "Cyclist injury crashes, last 52 weeks",
+    "cyclist_casualty_ewm_hl52w": "Cyclist injury crashes per week, past year trend",
+    "weeks_since_last_crash": "Weeks since the last crash",
+    "relative_crash_rate_52w": "Crash rate vs. the average intersection, last 52 weeks",
+    "neighbor_crashes_4w_150m": "Crashes within 150 m, last 4 weeks",
+    "neighbor_crashes_52w_150m": "Crashes within 150 m, last 52 weeks",
+    "neighbor_crashes_4w_400m": "Crashes within 400 m, last 4 weeks",
+    "neighbor_crashes_52w_400m": "Crashes within 400 m, last 52 weeks",
+    "neighbor_crashes_ewm_hl26w_400m": "Crashes per week within 400 m, past half-year trend",
+    "neighbor_crash_rate_all_history_400m": "Crashes per week within 400 m since 2012",
+    "intersections_within_150m": "Intersections within 150 m",
+    "intersections_within_400m": "Intersections within 400 m",
+    "street_count": "Streets meeting here",
+    "max_connecting_speed_limit": "Highest speed limit (mph)",
+    "max_connecting_lanes": "Most lanes on a connecting street",
+    "touches_oneway_street": "Touches a one-way street",
+    "is_traffic_signal": "Traffic signal",
+    "is_crossing_tagged": "Marked crosswalk",
 }
+
+
+def feature_display_name(name: str) -> str:
+    return FEATURE_DISPLAY_NAMES.get(name, name.replace("_", " "))
 
 def unvalidated_note(region_labels: list[str]) -> str:
     names = " and ".join(region_labels)
@@ -400,6 +461,9 @@ def intersection_facts(row: pd.Series, validated: bool = True) -> list[dict]:
         c4, c8 = _number(row, "crashes_last_4w"), _number(row, "crashes_last_8w")
         items_history.append({"label": "Crashes, last 4 weeks", "value": "not available" if c4 is None else str(int(c4)), "tone": "warn" if (c4 or 0) > 0 else "neutral"})
         items_history.append({"label": "Crashes, last 8 weeks", "value": "not available" if c8 is None else str(int(c8)), "tone": "warn" if (c8 or 0) > 0 else "neutral"})
+        c52 = _number(row, "crashes_last_52w")  # only present for models trained with long-run history
+        if c52 is not None:
+            items_history.append({"label": "Crashes, last 52 weeks", "value": str(int(c52)), "tone": "warn" if c52 > 0 else "neutral"})
         injuries = _number(row, "injuries_last_4w")
         items_history.append({"label": "Injuries, last 4 weeks", "value": "not available" if injuries is None else str(int(injuries)), "tone": "warn" if (injuries or 0) > 0 else "neutral"})
         ped = _number(row, "pedestrian_casualty_crashes_last_8w")

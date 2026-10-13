@@ -9,7 +9,9 @@ Westchester intersections as it is. That means:
 * There is no crash history, so the crash-history features are left blank. When the app scores these
   rows it also blanks latitude/longitude (Westchester is north of everywhere the model trained). The
   model's own imputer then treats them as "typical", so the ranking comes from road design alone.
-* Weather and season are copied from the NYC snapshot week (same week, same values).
+* Season and the citywide crash totals are copied from the NYC snapshot week (same week, same values).
+* Intersection density (how many intersections lie within 150 m and 400 m) is a road-network feature, so it is
+  computed here from Westchester's own street network, exactly as Notebook 2 does for NYC.
 * The result is an UNVALIDATED relative ranking. The app labels it that way everywhere.
 
 When real geocoded Westchester crashes are obtained (FOIL request), retrain with them and stop using this
@@ -54,8 +56,11 @@ CANDIDATE_MIN_STREET_COUNT = 3
 MAX_ROWS = 60_000
 
 # Features that are copied (not computed) because they are the same for every intersection in a given
-# week: weather and season.
-COPIED_FEATURE_PREFIXES = ("current_week_", "week_of_year")
+# week: season and the citywide crash totals ("current_week_" is the weather prefix older models used).
+COPIED_FEATURE_PREFIXES = ("current_week_", "week_of_year", "citywide_")
+
+# Same radii as Notebook 2's NEIGHBOR_RADII_M (section 11).
+NEIGHBOR_RADII_M = (150, 400)
 
 _ROAD_CLASS_RANK = {"motorway": 6, "trunk": 5, "primary": 4, "secondary": 3, "tertiary": 2, "residential": 1, "unclassified": 0, "service": 0}
 
@@ -157,7 +162,28 @@ def build_static_features(nodes_gdf: pd.DataFrame, edges_gdf: pd.DataFrame, min_
         grouped = endpoints("is_oneway_numeric", "is_oneway_numeric").groupby("node_id", as_index=False)["is_oneway_numeric"].max()
         road_design = road_design.merge(grouped.rename(columns={"is_oneway_numeric": "touches_oneway_street"}), on="node_id", how="left")
 
-    return candidate_nodes.merge(road_design, on="node_id", how="left")
+    static = candidate_nodes.merge(road_design, on="node_id", how="left")
+    return add_intersection_density(static)
+
+
+def add_intersection_density(static: pd.DataFrame, radii_m=NEIGHBOR_RADII_M) -> pd.DataFrame:
+    """intersections_within_<r>m: how many OTHER eligible intersections lie within r metres, using the same flat
+    projection as Notebook 2 section 11. Intersections near the county line are undercounted slightly, because
+    the neighbouring area's intersections are not in this network."""
+    from scipy.spatial import cKDTree
+
+    static = static.reset_index(drop=True).copy()
+    center_latitude = np.deg2rad(static["latitude"].mean())
+    xy = np.column_stack([
+        static["longitude"].to_numpy() * 111_320 * np.cos(center_latitude),
+        static["latitude"].to_numpy() * 110_540,
+    ])
+    tree = cKDTree(xy)
+    for radius in radii_m:
+        # query_ball_point counts the point itself, so subtract one
+        counts = tree.query_ball_point(xy, r=radius, return_length=True) - 1
+        static[f"intersections_within_{radius}m"] = counts.astype(np.float32)
+    return static
 
 
 def join_list_values(frame: pd.DataFrame) -> pd.DataFrame:
@@ -179,7 +205,7 @@ def build_region_frame(
     metadata: dict,
     region_key: str,
 ) -> pd.DataFrame:
-    """Static features + the weather/season values from the NYC snapshot week + region columns."""
+    """Static features + the season and citywide values from the NYC snapshot week + region columns."""
     required = list(metadata["numeric_features"]) + list(metadata["categorical_features"])
     frame = join_list_values(static_features)
 
@@ -269,7 +295,8 @@ def main() -> None:
     if not (40.8 < south < 41.6 and 40.8 < north < 41.6):
         print(f"WARNING: latitudes {south:.2f}..{north:.2f} don't look like Westchester County. Check the place query.")
 
-    diagnostics = diagnose(frame, nyc_demo, [c for c in metadata["numeric_features"] if c in ("street_count", "is_traffic_signal", "is_crossing_tagged", "max_connecting_lanes", "max_connecting_speed_limit", "touches_oneway_street")])
+    road_columns = ("street_count", "is_traffic_signal", "is_crossing_tagged", "max_connecting_lanes", "max_connecting_speed_limit", "touches_oneway_street")
+    diagnostics = diagnose(frame, nyc_demo, [c for c in metadata["numeric_features"] if c in road_columns or c.startswith("intersections_within_")])
     print("\nHow complete the road-design features are here, compared with NYC:")
     print(diagnostics.to_string(index=False))
     sparse = diagnostics.loc[diagnostics["region_filled_pct"] < 50, "feature"].tolist()

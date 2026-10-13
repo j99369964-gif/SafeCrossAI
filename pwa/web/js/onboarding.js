@@ -1,6 +1,6 @@
 // First-run tour: four short steps in an accessible dialog. "Seen" is remembered on this device (localStorage),
 // so a returning visitor isn't shown it again. ?tour=off skips it; the Help button reopens it at any time.
-import { h } from "./dom.js";
+import { h, icon, leave } from "./dom.js";
 import { getItem, setItem } from "./storage.js";
 
 export const TOUR_KEY = "safecross.onboarded.v1";
@@ -31,7 +31,7 @@ export const STEPS = [
     title: "How to plan a trip",
     body: () => [
       h("ol", {},
-        h("li", {}, "Type a start and a destination, or tap Use my location. An address, a landmark or coordinates all work."),
+        h("li", {}, "Type a start and a destination, or tap the location button in the From box. An address, a landmark or coordinates all work."),
         h("li", {}, "Choose driving, cycling or walking and tap Find routes."),
         h("li", {}, "Compare the cards. Badges mark the fastest route and the one with the fewest high-risk intersections."),
         h("li", {}, "Look at the map. Red dots are the high-risk intersections a route passes. Tap a card to focus its route."),
@@ -62,31 +62,48 @@ export const shouldAutoOpen = (search) => !hasSeenTour() && new URLSearchParams(
 export function openTour({ host, onClose, startStep = 0 }) {
   const opener = document.activeElement;
   let step = Math.max(0, Math.min(startStep, STEPS.length - 1));
+  let closing = false;
   const overlay = h("div", { class: "overlay" });
   const dialog = h("div", { class: "dialog", role: "dialog", "aria-modal": "true", "aria-labelledby": "tour-title" });
+  // The step counter and progress segments stay put between steps so the fill can animate; only the step itself is swapped.
+  const counter = h("p", { class: "kicker" });
+  const segments = STEPS.map(() => h("span", {}));
+  const bar = h("div", { class: "progress", role: "progressbar", "aria-valuemin": "1", "aria-valuemax": String(STEPS.length), style: `--steps:${STEPS.length}` }, segments);
+  const stepHost = h("div", {});
+  dialog.append(h("div", { class: "tour-meta" }, counter, bar), stepHost);
   overlay.append(dialog);
   host.append(overlay);
 
   function finish(example) {
+    if (closing) return;
+    closing = true;
     setItem(TOUR_KEY, "1");
     document.removeEventListener("keydown", onKey, true);
-    overlay.remove();
+    leave(overlay);
     if (opener && typeof opener.focus === "function") opener.focus();
     if (onClose) onClose({ example: Boolean(example) });
   }
 
-  function render() {
+  function go(next) {
+    const direction = next < step ? "back" : "next";
+    step = next;
+    render(direction);
+  }
+
+  function render(direction = "next") {
     const current = STEPS[step];
     const last = step === STEPS.length - 1;
-    const bar = h("div", { class: "progress", role: "progressbar", "aria-valuemin": "1", "aria-valuemax": String(STEPS.length), "aria-valuenow": String(step + 1), "aria-label": `Step ${step + 1} of ${STEPS.length}` },
-      h("div", { style: `width:${((step + 1) / STEPS.length) * 100}%` }));
+    counter.textContent = `Step ${step + 1} of ${STEPS.length}`;
+    bar.setAttribute("aria-valuenow", String(step + 1));
+    bar.setAttribute("aria-label", `Step ${step + 1} of ${STEPS.length}`);
+    segments.forEach((segment, i) => segment.classList.toggle("is-done", i <= step));
     const title = h("h2", { id: "tour-title", tabindex: "-1" }, current.title);
     const buttons = h("div", { class: "btn-row" },
-      step > 0 ? h("button", { type: "button", class: "btn btn-ghost", onclick: () => { step -= 1; render(); } }, "Back") : null,
+      step > 0 ? h("button", { type: "button", class: "btn btn-ghost", onclick: () => go(step - 1) }, "Back") : null,
       last ? h("button", { type: "button", class: "btn btn-ghost", onclick: () => finish(false) }, "Start planning") : h("button", { type: "button", class: "btn btn-ghost", onclick: () => finish(false) }, "Skip tour"),
-      last ? h("button", { type: "button", class: "btn", onclick: () => finish(true) }, "Try an example route") : h("button", { type: "button", class: "btn", onclick: () => { step += 1; render(); } }, "Next"));
-    dialog.replaceChildren(h("p", { class: "muted", style: "margin:0 0 6px" }, `Step ${step + 1} of ${STEPS.length}`), bar, title, ...current.body(), buttons);
-    title.focus();
+      last ? h("button", { type: "button", class: "btn", onclick: () => finish(true) }, "Try an example route") : h("button", { type: "button", class: "btn", onclick: () => go(step + 1) }, "Next", icon("arrow", 18)));
+    stepHost.replaceChildren(h("div", { class: "tour-step", dataset: { dir: direction } }, title, ...current.body(), buttons));
+    title.focus({ preventScroll: true });
   }
 
   // Keep keyboard focus inside the dialog, and let Escape skip the tour.

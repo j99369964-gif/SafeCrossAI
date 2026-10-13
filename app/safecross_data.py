@@ -33,7 +33,7 @@ GRID_BINS = 30
 
 
 def pretty_feature(name: str) -> str:
-    return name.replace("_", " ")
+    return core.feature_display_name(name)
 
 
 class SafeCrossData:

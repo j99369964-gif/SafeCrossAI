@@ -62,7 +62,8 @@ DENSIFY_SPACING_M = 8.0
 #
 # * risk_index is the model's predicted probability divided by the average for the same area, so 1.0 means
 #   "an average intersection", 3.0 means "three times the average". The model has already weighed that
-#   intersection's crash history, speed limit, lanes, signals, crossings, one-way streets and the weather.
+#   intersection's recent and long-run crash history, crashes at nearby intersections, speed limit, lanes, signals,
+#   crossings and one-way streets.
 # * closeness (0 to 1) is how squarely the route runs through the intersection: 1.0 on the route line, falling to
 #   about 0.14 at the 25 m edge, so a street that merely runs alongside counts for less.
 # * vulnerability is 1.0 for driving. For walking and cycling it rises with the fastest connecting speed limit and

@@ -15,6 +15,8 @@ const PRECACHE = [
   "/",
   "/manifest.webmanifest",
   "/css/styles.css",
+  "/fonts/overpass.woff2",
+  "/fonts/overpass-mono.woff2",
   "/js/app.js",
   "/js/api.js",
   "/js/detail.js",

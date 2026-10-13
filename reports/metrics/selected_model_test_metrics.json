@@ -1,0 +1,17 @@
+{
+  "threshold": 0.17699472606182098,
+  "positive_rate": 0.02635845777957714,
+  "precision": 0.106155427795744,
+  "recall": 0.4331179496925353,
+  "f1": 0.17051767491201958,
+  "f2": 0.26801734449760767,
+  "balanced_accuracy": 0.6671942307447443,
+  "roc_auc": 0.8000526367434475,
+  "average_precision": 0.12307663316102066,
+  "average_precision_lift": 4.6693412107130925,
+  "brier_score": 0.029497046023607254,
+  "true_negative": 4904980,
+  "false_positive": 537315,
+  "false_negative": 83521,
+  "true_positive": 63813
+}

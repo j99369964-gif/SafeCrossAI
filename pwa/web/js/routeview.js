@@ -1,12 +1,13 @@
 // The main screen: plan a trip, compare the route options, see them on the map.
-import { h, boldParts } from "./dom.js";
+import { h, boldParts, icon, pageHeader, countUp } from "./dom.js";
 import * as api from "./api.js";
 import { mountSharedMap, onMapsAuthFailure, describeMapsError } from "./gmaps.js";
 import { createTripMap } from "./routemap.js";
-import { TIER_COLORS, TIER_NAMES, TIER_SHORT, splitStreets, tierPill, renderIntersectionDetail, loadingBody, errorBody } from "./detail.js";
+import { TIER_COLORS, TIER_NAMES, TIER_SHORT, splitStreets, tierPill, renderIntersectionDetail, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
 
 export const EXAMPLE_TRIP = { from: "Columbus Circle, New York, NY", to: "Barclays Center, Brooklyn, NY", mode: "Driving" };
 const MODES = ["Driving", "Cycling", "Walking"];
+const MODE_ICONS = { Driving: "car", Cycling: "bike", Walking: "walk" };
 
 // Kept in memory only, for as long as the page stays open. Route results are Google Maps Platform content, so they are
 // never written to localStorage, IndexedDB or the service-worker cache.
@@ -32,9 +33,9 @@ function setupNotice(config) {
 
 export function mountRouteView(root, ctx) {
   const { config } = ctx;
-  const heading = h("h1", { tabindex: "-1" }, "Plan a safer route");
-  const page = h("section", { class: "page" }, heading,
-    h("p", { class: "muted" }, "Compare route options by travel time and by a risk score that adds up every intersection each one passes."));
+  const { header, heading } = pageHeader("New York City · Westchester", "Plan a safer route",
+    "Compare route options by travel time and by a risk score that adds up every intersection each one passes.");
+  const page = h("section", { class: "page" }, header);
   root.append(page);
 
   if (!config.routesConfigured || !config.mapsJsKey) {
@@ -60,22 +61,26 @@ export function mountRouteView(root, ctx) {
   });
   const modeGroup = h("fieldset", {}, h("legend", {}, "Travel mode"),
     h("div", { class: "segmented", role: "radiogroup", "aria-label": "Travel mode" },
-      modeRadios.map((radio) => h("label", {}, radio, h("span", {}, radio.value)))));
+      modeRadios.map((radio) => h("label", {}, radio, h("span", {}, icon(MODE_ICONS[radio.value], 18), radio.value)))));
 
   const submitButton = h("button", { type: "submit", class: "btn" }, "Find routes");
   const exampleButton = h("button", { type: "button", class: "btn btn-ghost", onclick: () => runExample() }, "Try an example trip");
-  const locationButton = h("button", { type: "button", class: "btn btn-ghost", onclick: () => useMyLocation(), "aria-label": "Use my location as the starting point" }, "Use my location");
+  const locationButton = h("button", { type: "button", class: "input-action", onclick: () => useMyLocation(), "aria-label": "Use my location as the starting point", title: "Use my location" }, icon("locate"));
 
-  const status = h("div", { role: "status", "aria-live": "polite", class: "muted" });
+  const status = h("div", { role: "status", "aria-live": "polite", class: "muted status-line" });
   const errorBox = h("div", { role: "alert" });
-  const resultsEl = h("div", { id: "results" });
+  const resultsEl = h("div", { id: "results", class: "results" });
 
-  const form = h("form", { class: "card", novalidate: true, onsubmit: (event) => { event.preventDefault(); search(); } },
-    h("div", { class: "field-with-action" }, h("div", { class: "field" }, h("label", { for: "from" }, "From"), fromInput), locationButton),
-    h("div", { class: "field", style: "margin-top:12px" }, h("label", { for: "to" }, "To"), toInput),
+  // A start ring and a destination diamond joined by a dashed line (see .trip-form in styles.css).
+  const form = h("form", { class: "card trip-form", novalidate: true, onsubmit: (event) => { event.preventDefault(); search(); } },
+    h("div", { class: "trip-fields" },
+      h("div", { class: "trip-row" }, h("span", { class: "trip-pin trip-pin-start", "aria-hidden": "true" }),
+        h("div", { class: "field" }, h("label", { for: "from" }, "From"), fromInput, locationButton)),
+      h("div", { class: "trip-row" }, h("span", { class: "trip-pin trip-pin-end", "aria-hidden": "true" }),
+        h("div", { class: "field" }, h("label", { for: "to" }, "To"), toInput))),
     modeGroup,
     h("div", { class: "btn-row" }, submitButton, exampleButton),
-    h("p", { class: "muted", style: "margin:10px 0 0;font-size:.85rem" },
+    h("p", { class: "form-hint" },
       "Places are assumed to be in New York (the city or Westchester County) unless you include another place name."));
   page.append(form, status, errorBox, resultsEl);
 
@@ -86,12 +91,15 @@ export function mountRouteView(root, ctx) {
     if (!("geolocation" in navigator)) { showError("This browser can't share your location. Type a starting point instead."); return; }
     showError("");
     status.textContent = "Finding your location...";
+    locationButton.classList.add("is-locating");
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        locationButton.classList.remove("is-locating");
         fromInput.value = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
         status.textContent = "Using your current location as the starting point.";
       },
       (problem) => {
+        locationButton.classList.remove("is-locating");
         status.textContent = "";
         showError(problem && problem.code === 1
           ? "Location permission was denied. Allow it in your browser settings, or type a starting point."
@@ -117,7 +125,11 @@ export function mountRouteView(root, ctx) {
     if (!origin || !destination) { showError("Enter both a starting point and a destination."); return; }
     busy = true;
     submitButton.disabled = true;
-    status.replaceChildren(h("span", { class: "spinner", "aria-hidden": "true" }), " Finding route options...");
+    form.classList.add("is-busy");
+    status.replaceChildren(h("span", { class: "spinner", "aria-hidden": "true" }), "Finding route options...");
+    if (tripMap) { tripMap.destroy(); tripMap = null; }
+    hideSheet(sheetHost);
+    resultsEl.replaceChildren(resultsSkeleton());
     try {
       const trip = await api.findRoutes({ origin, destination, mode: memory.form.mode });
       if (destroyed) return;
@@ -135,7 +147,19 @@ export function mountRouteView(root, ctx) {
     } finally {
       busy = false;
       submitButton.disabled = false;
+      form.classList.remove("is-busy");
     }
+  }
+
+  function resultsSkeleton() {
+    return h("div", { "aria-hidden": "true" },
+      h("div", { class: "skeleton skeleton-title", style: "width:40%;margin-top:28px" }),
+      h("div", { class: "skeleton skeleton-line", style: "width:70%" }),
+      h("div", { class: "cards" }, [0, 1, 2].map(() => h("div", { class: "card skeleton-card" },
+        h("div", { class: "skeleton skeleton-title" }),
+        h("div", { class: "skeleton skeleton-num" }),
+        h("div", { class: "skeleton skeleton-line" }),
+        h("div", { class: "skeleton skeleton-line", style: "width:60%" })))));
   }
 
   // ------------------------------------------------------------------ results
@@ -143,50 +167,65 @@ export function mountRouteView(root, ctx) {
   const filtersEl = h("div", {});
   const topEl = h("div", {});
   const listEl = h("div", {});
-  const sheetHost = h("div", {});
+  const sheetHost = h("div", { class: "sheet-host" });
   let resultsHeading = null;
   let detailToken = 0;
 
   const selectedRoute = () => memory.trip.routes[memory.selected];
 
   function select(index) {
+    if (index === memory.selected) return;
     memory.selected = index;
-    renderCards();
+    updateCardSelection();
     renderFilters();
     renderTop();
-    renderList();
+    renderList(true);
     if (tripMap) tripMap.highlight(index);
   }
 
   function setTiers(tiers) {
     memory.tiers = tiers;
     renderFilters();
-    renderList();
+    renderList(true);
     if (tripMap) tripMap.setTiers(tiers);
   }
 
+  // Cards are built once per result and then updated in place, so changing the selection animates instead of redrawing.
   function renderCards() {
     const trip = memory.trip;
     const maxScore = Math.max(...trip.routes.map((route) => route.score), 0.0001);
     cardsEl.replaceChildren(...trip.routes.map((route, index) => {
-      const selected = index === memory.selected;
       const timeDelta = route.deltaMinutes === null ? null : h("div", { class: "delta" }, `${route.deltaMinutes >= 0 ? "+" : ""}${route.deltaMinutes} min`);
       const scoreDelta = route.scoreChangePct === null ? null
         : h("div", { class: `delta${route.scoreChangePct < 0 ? " good" : ""}` }, `${route.scoreChangePct > 0 ? "+" : ""}${route.scoreChangePct}%`);
       const caption = [route.distanceText, `${route.nIntersections} intersections`, route.nHot ? `${route.nHot} hot spot${route.nHot === 1 ? "" : "s"}` : "no hot spots", `${route.nHigh} high-risk`];
       if (route.nUnvalidated) caption.push(`${route.nUnvalidated} in an unvalidated area`);
-      return h("article", { class: "card route-card", "aria-label": route.label, style: selected ? "border-color:var(--primary)" : "" },
-        h("h3", {}, h("span", { class: "swatch", style: `background:${route.color}`, "aria-hidden": "true" }), route.label),
+      const scoreValue = h("div", { class: "metric-value" });
+      countUp(scoreValue, route.score, 1, 800 + index * 120);
+      // The whole card is clickable; the button inside is the keyboard and screen-reader route to the same action.
+      return h("article", { class: "card route-card", "aria-label": route.label, style: `--i:${index};--route-color:${route.color}`, onclick: () => select(index) },
+        h("h3", {}, route.label),
         h("div", { class: "badges" }, route.badges.map((badge) => h("span", { class: "badge" }, badge))),
         h("div", { class: "metrics" },
           h("div", {}, h("div", { class: "metric-label" }, "Travel time"), h("div", { class: "metric-value" }, route.durationText), timeDelta),
-          h("div", {}, h("div", { class: "metric-label" }, "Risk score"), h("div", { class: "metric-value" }, route.score.toFixed(1)), scoreDelta)),
+          h("div", {}, h("div", { class: "metric-label" }, "Risk score"), scoreValue, scoreDelta)),
         h("div", { class: "score-bar", role: "img", "aria-label": `Risk score ${route.score.toFixed(1)}, ${Math.round((route.score / maxScore) * 100)}% of the highest option` },
           h("span", { style: `width:${Math.max(3, (route.score / maxScore) * 100)}%;background:${route.color}` })),
-        h("p", { class: "muted small", style: "margin:6px 0 8px" }, caption.join(" · ")),
-        h("button", { type: "button", class: selected ? "btn btn-small" : "btn btn-small btn-ghost", "aria-pressed": selected ? "true" : "false", onclick: () => select(index) },
-          selected ? "Showing details" : "Show details"));
+        h("p", { class: "muted small", style: "margin:8px 0 12px" }, caption.join(" · ")),
+        h("button", { type: "button", class: "btn btn-small btn-ghost card-select" }));
     }));
+    updateCardSelection();
+  }
+
+  function updateCardSelection() {
+    [...cardsEl.children].forEach((card, index) => {
+      const selected = index === memory.selected;
+      card.classList.toggle("is-selected", selected);
+      const button = card.querySelector(".card-select");
+      button.classList.toggle("btn-ghost", !selected);
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+      button.textContent = selected ? "Showing details" : "Show details";
+    });
   }
 
   function renderFilters() {
@@ -227,14 +266,15 @@ export function mountRouteView(root, ctx) {
   const sidewalkText = { yes: "Sidewalk", partial: "Sidewalk on one side", no: "No sidewalk (tagged)", unknown: "Sidewalk not mapped" };
   const MAX_ROWS = 150;
 
-  function renderList() {
+  // `animate` staggers the rows in. Selecting a row doesn't rebuild the list (see markSelectedStop).
+  function renderList(animate = false) {
     const route = selectedRoute();
     let stops = route.stops.filter((stop) => memory.tiers.has(stop.tier));
     if (memory.sort === "risk") stops = [...stops].sort((a, b) => b.share - a.share);
     const total = stops.length;
     const sortButtons = [["route", "Along the route"], ["risk", "Biggest contributors first"]].map(([key, label]) => {
       const button = h("button", { type: "button", class: "chip", "aria-pressed": memory.sort === key ? "true" : "false" }, label);
-      button.addEventListener("click", () => { memory.sort = key; renderList(); });
+      button.addEventListener("click", () => { memory.sort = key; renderList(true); });
       return button;
     });
     let body;
@@ -242,7 +282,7 @@ export function mountRouteView(root, ctx) {
     else if (total === 0) body = h("div", { class: "banner banner-info" }, `${route.label} passes no intersections at the chosen risk levels.`);
     else {
       const shown = stops.slice(0, MAX_ROWS);
-      body = h("ul", { class: "stop-list" }, shown.map((stop) => {
+      body = h("ul", { class: `stop-list${animate ? " is-entering" : ""}` }, shown.map((stop, i) => {
         const [main, cross] = splitStreets(stop.label);
         const chips = [
           h("span", { class: "mini-chip" }, tierPill(stop.tier)),
@@ -252,7 +292,7 @@ export function mountRouteView(root, ctx) {
           stop.unvalidated ? h("span", { class: "mini-chip warn" }, "Unvalidated") : null,
         ];
         const selected = memory.node === stop.id;
-        return h("li", {}, h("button", { type: "button", class: `stop${selected ? " selected" : ""}`, onclick: () => openNode(stop.id, true), "aria-label": `${stop.label}, ${TIER_SHORT[stop.tier]}, ${stop.share}% of the score` },
+        return h("li", { style: `--i:${Math.min(i, 16)}` }, h("button", { type: "button", class: `stop${selected ? " selected" : ""}`, dataset: { id: String(stop.id) }, onclick: () => openNode(stop.id, true), "aria-label": `${stop.label}, ${TIER_SHORT[stop.tier]}, ${stop.share}% of the score` },
           h("span", { class: "stop-bar", style: `background:${TIER_COLORS[stop.tier]}`, "aria-hidden": "true" }),
           h("span", { class: "stop-main" },
             h("span", { class: "street-main" }, main), cross ? h("span", { class: "street-cross" }, `& ${cross}`) : null,
@@ -267,29 +307,32 @@ export function mountRouteView(root, ctx) {
       h("p", { class: "muted small" }, "The percentage is each intersection's share of this route's risk score."));
   }
 
+  function markSelectedStop() {
+    listEl.querySelectorAll(".stop").forEach((row) => row.classList.toggle("selected", row.dataset.id === String(memory.node)));
+  }
+
   function closeSheet() {
     detailToken += 1;
     memory.node = null;
-    sheetHost.replaceChildren();
+    hideSheet(sheetHost);
     if (tripMap) tripMap.selectNode(null);
-    renderList();
+    markSelectedStop();
   }
 
   async function openNode(id, pan) {
     memory.node = id;
     const mine = ++detailToken;
     if (tripMap) { tripMap.selectNode(id); if (pan) tripMap.focusNode(id); }
-    renderList();
-    sheetHost.replaceChildren(h("div", { class: "sheet", role: "dialog", "aria-label": "Intersection details" }, loadingBody()));
+    markSelectedStop();
+    showSheet(sheetHost, loadingBody());
     try {
       const detail = await api.getIntersection(id);
       if (destroyed || mine !== detailToken) return;
-      const sheet = h("div", { class: "sheet", role: "dialog", "aria-label": "Intersection details" }, renderIntersectionDetail(detail, { onClose: closeSheet }));
-      sheetHost.replaceChildren(sheet);
+      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet }));
       const closeButton = sheet.querySelector(".sheet-close");
       if (closeButton) closeButton.focus({ preventScroll: true });
     } catch (problem) {
-      if (!destroyed && mine === detailToken) sheetHost.replaceChildren(h("div", { class: "sheet", role: "alert" }, errorBody(problem.message, closeSheet)));
+      if (!destroyed && mine === detailToken) showSheet(sheetHost, errorBody(problem.message, closeSheet), { role: "alert" });
     }
   }
 
@@ -301,7 +344,7 @@ export function mountRouteView(root, ctx) {
     if (!trip) { resultsEl.replaceChildren(); return; }
 
     resultsHeading = h("h2", { tabindex: "-1" }, "Route options");
-    const mapHolder = h("div", {});
+    const mapHolder = h("div", {}, h("div", { class: "map map-loading", "aria-hidden": "true" }, "Loading map"));
     const mapMessage = h("div", {});
     const pieces = [resultsHeading];
     trip.notices.forEach((notice) => pieces.push(h("div", { class: "banner banner-info" }, notice)));
@@ -326,11 +369,11 @@ export function mountRouteView(root, ctx) {
         TIER_NAMES.map((name, code) => h("span", {}, h("span", { class: "dot", style: `background:${TIER_COLORS[code]}` }), name)),
         h("span", {}, "Tap a route line or a card to focus it.")),
       topEl, filtersEl, listEl, sheetHost,
-      h("div", { class: "btn-row" }, h("a", { class: "btn btn-ghost", href: trip.googleMapsUrl, target: "_blank", rel: "noopener noreferrer" }, "Open this trip in Google Maps")),
+      h("div", { class: "btn-row" }, h("a", { class: "btn btn-ghost", href: trip.googleMapsUrl, target: "_blank", rel: "noopener noreferrer" }, "Open this trip in Google Maps", icon("external", 18))),
       h("details", {}, h("summary", {}, "How is the risk score worked out?"),
         h("ul", {},
           h("li", {}, "Google's route line is matched against every scored intersection. An intersection counts as passed if it is within about 25 metres of the line, and counts more the closer the line runs to its centre."),
-          h("li", {}, "Each intersection gets a relative risk: the model's prediction divided by the average for its area, so 1.0 is an average intersection and 3.0 is three times the average. The model already weighs the intersection's recent crashes, speed limit, lanes, signal, crossings, one-way streets and the weather."),
+          h("li", {}, "Each intersection gets a relative risk: the model's prediction divided by the average for its area, so 1.0 is an average intersection and 3.0 is three times the average. The model already weighs the intersection's recent and long-run crash history, crashes at nearby intersections, its speed limit, lanes, signal, crossings and one-way streets."),
           h("li", {}, "The route score adds up the relative risk of every intersection passed, not just the worst ones, so a long route through many average intersections can outscore a short route past one bad one. Lower is safer. Hot spots are intersections at least 3 times the average."),
           h("li", {}, "Walking and cycling count intersections a little more where traffic is fast (26 mph and up, more at 35 mph and up) or where someone on foot or on a bike was hurt in the last eight weeks. These adjustments are judgement calls, not fitted to data."),
           h("li", {}, "Scores compare options for the same trip. They are not chances of a crash, and the model scores intersections only, so risk between intersections is not counted."),
@@ -339,11 +382,12 @@ export function mountRouteView(root, ctx) {
           h("li", {}, "Sidewalk, bike-lane and lighting facts come from OpenStreetMap volunteers. 'Not mapped' means nobody has recorded it, not that it is missing."),
           h("li", {}, "Westchester County is an unvalidated estimate: the model was trained on New York City crashes and applied there to the road layout only."))),
       h("p", { class: "muted small" }, "Route options, travel times and the map are provided by Google Maps Platform. Risk rankings are from the SafeCross AI model. See About for terms and privacy."));
+    pieces.forEach((piece, i) => piece.style.setProperty("--i", String(Math.min(i, 10))));
     resultsEl.replaceChildren(...pieces);
     renderCards();
     renderFilters();
     renderTop();
-    renderList();
+    renderList(true);
     if (moveFocus) resultsHeading.focus();
 
     unsubscribeAuth = onMapsAuthFailure((message) => mapMessage.replaceChildren(h("div", { class: "banner banner-error", role: "alert" }, message)));

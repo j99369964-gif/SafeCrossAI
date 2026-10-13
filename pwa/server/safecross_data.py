@@ -35,7 +35,7 @@ FINE_CELL = 0.005  # cells this small are only built for the part of the map in 
 
 
 def pretty_feature(name: str) -> str:
-    return name.replace("_", " ")
+    return core.feature_display_name(name)
 
 
 class SafeCrossData:

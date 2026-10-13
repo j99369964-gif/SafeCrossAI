@@ -1,8 +1,8 @@
 // Draws a route result on the shared Google Map: one line per route, start/end markers, and a dot for every
 // intersection the routes pass, coloured by risk tier exactly like the Explore map. Dots keep a constant on-screen
 // size. Clicking a dot (or a route line) is reported to the caller, which shows the details panel.
-import { h } from "./dom.js";
-import { metersForPixels } from "./gmaps.js";
+import { h, reducedMotion } from "./dom.js";
+import { metersForPixels, mapIsDark } from "./gmaps.js";
 import { TIER_COLORS } from "./detail.js";
 
 const DOT_PIXELS = [7, 6, 5, 5];
@@ -12,6 +12,7 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
   const info = new maps.InfoWindow();
   const bounds = new maps.LatLngBounds();
   const lines = [];
+  const casings = [];
   const dots = new Map(); // intersection id -> { dot, circle, pixels }
   const endpoints = [];
   const listeners = [];
@@ -25,15 +26,38 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
     info.open(map);
   };
 
-  data.routes.forEach((route, index) => {
-    const path = route.points.map(([lat, lng]) => ({ lat, lng }));
+  // Each route is a coloured line on a slightly wider casing in the map's background colour, so overlapping routes and
+  // busy streets don't swallow it.
+  const casingColor = mapIsDark() ? "#111214" : "#ffffff";
+  const paths = data.routes.map((route) => route.points.map(([lat, lng]) => ({ lat, lng })));
+  paths.forEach((path, index) => {
     path.forEach((point) => bounds.extend(point));
-    const line = new maps.Polyline({ path, strokeColor: route.color, strokeOpacity: 0.85, strokeWeight: 5, zIndex: 1, map });
+    const casing = new maps.Polyline({ path, strokeColor: casingColor, strokeOpacity: 0.9, strokeWeight: 9, zIndex: 0, clickable: false, map });
+    const line = new maps.Polyline({ path, strokeColor: data.routes[index].color, strokeOpacity: 0.85, strokeWeight: 5, zIndex: 1, map });
     listeners.push(line.addListener("click", () => onSelectRoute && onSelectRoute(index)));
+    casings.push(casing);
     lines.push(line);
   });
 
-  [["Start", data.start, "#188038"], ["End", data.end, "#202124"]].forEach(([name, [lat, lng], color]) => {
+  // Draw the lines from start to end once, as if traced. Skipped when the user prefers reduced motion.
+  let drawFrame = 0;
+  function drawIn(duration = 1100) {
+    if (reducedMotion()) return;
+    const started = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      paths.forEach((path, index) => {
+        const part = path.slice(0, Math.max(2, Math.ceil(path.length * eased)));
+        lines[index].setPath(part);
+        casings[index].setPath(part);
+      });
+      if (t < 1) drawFrame = requestAnimationFrame(step);
+    };
+    drawFrame = requestAnimationFrame(step);
+  }
+
+  [["Start", data.start, "#f5b301"], ["End", data.end, "#17191b"]].forEach(([name, [lat, lng], color]) => {
     const position = { lat, lng };
     const circle = new maps.Circle({ center: position, radius: metersForPixels(map, 9), fillColor: color, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2, zIndex: 20, map });
     listeners.push(circle.addListener("click", () => openInfo(position, name)));
@@ -75,6 +99,11 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
       strokeOpacity: index < 0 ? 0.85 : k === index ? 1 : 0.35,
       zIndex: k === index ? 3 : 1,
     }));
+    casings.forEach((casing, k) => casing.setOptions({
+      strokeWeight: index < 0 ? 9 : k === index ? 13 : 7,
+      strokeOpacity: index < 0 || k === index ? 0.9 : 0.35,
+      zIndex: k === index ? 2 : 0,
+    }));
     refreshDots();
   }
 
@@ -108,12 +137,14 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
   }
 
   function destroy() {
+    cancelAnimationFrame(drawFrame);
     info.close();
     listeners.forEach((listener) => listener.remove());
-    [...lines, ...endpoints, ...[...dots.values()].map((entry) => entry.circle)].forEach((shape) => shape.setMap(null));
+    [...lines, ...casings, ...endpoints, ...[...dots.values()].map((entry) => entry.circle)].forEach((shape) => shape.setMap(null));
   }
 
   fit();
   refreshDots();
+  drawIn();
   return { highlight, setTiers, selectNode, focusNode, fit, destroy };
 }

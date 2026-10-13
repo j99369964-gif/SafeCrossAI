@@ -67,7 +67,7 @@ demo_data = load_scored_demo_data()
 
 st.title("SafeCross AI — Explainable road-safety screening for urban intersections")
 st.write(
-    "SafeCross uses public crash, roadway, time, and weather data to identify "
+    "SafeCross uses public crash, roadway, and time data to identify "
     "intersections that may deserve closer safety review and explain the "
     "signals behind each ranking."
 )
@@ -593,9 +593,12 @@ with limitations_tab:
   today's OpenStreetMap. A redesigned intersection may not match the layout that
   existed when its older crashes happened, and crash reporting and geocoding
   practices also changed over those years.
-- **Weather is one citywide location.** Weather features come from the weather
-  stations nearest Central Park and are identical for every intersection in a
-  given week, so they cannot explain why one intersection ranks above another.
+- **No weather.** Weather is not a model input: one citywide weather series is
+  identical for every intersection in a given week, so it cannot explain why
+  one intersection ranks above another, and it did not improve accuracy.
+- **Neighbors share history.** Part of each ranking comes from crashes at
+  intersections within 150 m and 400 m, so neighboring intersections tend to
+  rank alike.
 - **Time-based testing.** Validation and test use the most recent weeks, so
   results may differ for other periods (for example, before versus after
   COVID-era traffic changes).

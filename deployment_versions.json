@@ -1,0 +1,20 @@
+{
+  "python_version": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "pandas_version": "3.0.6",
+  "source": "test_predictions",
+  "demo_week": "2026-04-27",
+  "demo_row_count": 51281,
+  "demo_intersection_count": 51281,
+  "demo_column_count": 43,
+  "latitude_range": [
+    40.4984,
+    40.9122
+  ],
+  "longitude_range": [
+    -74.2549,
+    -73.7008
+  ],
+  "max_demo_rows": 60000,
+  "selected_model": "xgboost"
+}
