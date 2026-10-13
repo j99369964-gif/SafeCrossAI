@@ -1,0 +1,156 @@
+// SafeCross AI: app shell. Hash router, service-worker registration (with an "update ready" prompt), offline banner,
+// install button, and the first-run tour.
+import { h, clear } from "./dom.js";
+import * as api from "./api.js";
+import { mountRouteView } from "./routeview.js";
+import { mountExploreView } from "./exploreview.js";
+import { openTour, shouldAutoOpen } from "./onboarding.js";
+import { initInstall } from "./install.js";
+
+const $ = (id) => document.getElementById(id);
+const viewRoot = $("view");
+const state = { config: null, current: null, route: null, pendingExample: false };
+
+// ---------------------------------------------------------------------- toast
+function showToast(text, actionLabel, onAction) {
+  $("toast-text").textContent = text;
+  const action = $("toast-action");
+  action.textContent = actionLabel;
+  action.onclick = () => { $("toast").hidden = true; onAction(); };
+  $("toast").hidden = false;
+}
+
+// ---------------------------------------------------------------------- service worker
+export function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  let reloading = false;
+  // Reload once when an updated worker takes over. Skipped on the very first install, which would be a pointless reload.
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+  const offerUpdate = (worker) => showToast("A new version is ready.", "Refresh", () => worker.postMessage({ type: "SKIP_WAITING" }));
+  const register = async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting);
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) offerUpdate(worker);
+        });
+      });
+    } catch {
+      /* the app still works without a service worker; it just isn't available offline */
+    }
+  };
+  if (document.readyState === "complete") register();
+  else window.addEventListener("load", register);
+}
+
+// ---------------------------------------------------------------------- pages
+function renderAbout(root) {
+  const fragment = $("tpl-about").content.cloneNode(true);
+  root.append(fragment);
+  const heading = root.querySelector("h1");
+  const contact = state.config && state.config.contactEmail;
+  const placeholder = !contact || /example\.com$/i.test(contact);
+  root.querySelector("[data-contact]").textContent = contact || "your-email@example.com";
+  if (!placeholder) root.querySelector("#legal-draft").hidden = true;
+
+  const modelInfo = root.querySelector("#model-info");
+  api.getModelInfo().then((info) => {
+    const metrics = info.testMetrics && typeof info.testMetrics === "object"
+      ? Object.entries(info.testMetrics).filter(([, value]) => typeof value === "number").slice(0, 8) : [];
+    modelInfo.replaceChildren(
+      h("div", { class: "banner banner-warn" }, "These results describe New York City only. Westchester County has no crash data in this project, so none of these numbers apply to it."),
+      info.selectedModel ? h("p", {}, "Selected model: ", h("strong", {}, String(info.selectedModel)), info.snapshotWeek ? ` · risk snapshot week of ${info.snapshotWeek}` : "") : null,
+      metrics.length ? h("dl", { class: "kv" }, metrics.flatMap(([name, value]) => [h("dt", {}, name.replace(/_/g, " ")), h("dd", {}, String(Math.round(value * 1000) / 1000))]))
+        : h("p", { class: "muted" }, "Detailed test metrics aren't published with this deployment."));
+  }).catch((problem) => modelInfo.replaceChildren(h("p", { class: "muted" }, problem.message)));
+  return { heading, destroy() {} };
+}
+
+const PAGES = {
+  route: { title: "Plan a safer route", mount: (root, ctx) => mountRouteView(root, ctx) },
+  explore: { title: "Explore the risk map", mount: (root, ctx) => mountExploreView(root, ctx) },
+  about: { title: "About", mount: (root) => renderAbout(root) },
+};
+
+function currentRouteName() {
+  const match = /^#\/([a-z]+)/.exec(window.location.hash || "");
+  if (!match) return "route";
+  if (match[1] === "legal") return "about"; // old/shared links to the terms land on About
+  return PAGES[match[1]] ? match[1] : "route";
+}
+
+function highlightNav(name) {
+  document.querySelectorAll("[data-route]").forEach((link) => {
+    if (link.dataset.route === name) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
+
+const context = {
+  get config() { return state.config; },
+  takePendingExample() { const value = state.pendingExample; state.pendingExample = false; return value; },
+};
+
+function offlineScreen(message) {
+  clear(viewRoot);
+  viewRoot.append(h("section", { class: "page" }, h("h1", { tabindex: "-1" }, "SafeCross AI"),
+    h("div", { class: "banner banner-offline", style: "border-radius:10px;justify-content:space-between" }, message,
+      h("button", { type: "button", class: "btn btn-small", onclick: () => navigate() }, "Try again"))));
+}
+
+export async function navigate() {
+  const name = currentRouteName();
+  if (state.current) { state.current.destroy(); state.current = null; }
+  clear(viewRoot);
+  highlightNav(name);
+  document.title = `${PAGES[name].title} · SafeCross AI`;
+  state.route = name;
+
+  if (!state.config) {
+    try { state.config = await api.getConfig(); }
+    catch (problem) { offlineScreen(problem.kind === "offline" || problem.kind === "network" ? "Can't reach the server right now. Check your connection." : problem.message); return; }
+    if (currentRouteName() !== name) return; // the user moved on while we were loading
+  }
+  state.current = PAGES[name].mount(viewRoot, context);
+  if (state.current && state.current.heading) state.current.heading.focus();
+  if (window.location.hash === "#/legal") { const legal = document.getElementById("legal"); if (legal) legal.scrollIntoView(); }
+}
+
+// ---------------------------------------------------------------------- tour
+function startTour(startStep = 0) {
+  openTour({
+    host: $("overlay-root"),
+    startStep,
+    onClose: ({ example }) => {
+      if (!example) return;
+      state.pendingExample = true;
+      if (state.route === "route") navigate(); // already here: remount so the example runs
+      else window.location.hash = "#/route";
+    },
+  });
+}
+
+// ---------------------------------------------------------------------- online / offline
+function syncOnline() { $("offline-banner").hidden = navigator.onLine !== false; }
+
+// ---------------------------------------------------------------------- boot
+export function boot() {
+  window.addEventListener("hashchange", () => navigate());
+  window.addEventListener("online", syncOnline);
+  window.addEventListener("offline", syncOnline);
+  syncOnline();
+  $("help-button").addEventListener("click", () => startTour(0));
+  initInstall({ button: $("install-button"), iosHint: $("ios-hint"), iosDismiss: $("ios-hint-dismiss") });
+  registerServiceWorker();
+  navigate().then(() => { if (shouldAutoOpen(window.location.search)) startTour(0); });
+}
+
+boot();

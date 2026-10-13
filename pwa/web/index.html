@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeCross AI</title>
+  <meta name="description" content="Compare route options by travel time and by how many high-risk intersections each one passes, in New York City and Westchester County.">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b57d0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1f3a" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SafeCross">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#view">Skip to content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="/icons/favicon-32.png" width="28" height="28" alt="">
+      <span class="brand-name">SafeCross AI</span>
+    </div>
+    <nav class="tabs" aria-label="Main">
+      <a href="#/route" data-route="route">Route</a>
+      <a href="#/explore" data-route="explore">Explore</a>
+      <a href="#/about" data-route="about">About</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="install-button" class="btn btn-small" type="button" hidden>Install app</button>
+      <button id="help-button" class="btn btn-small btn-ghost" type="button" aria-label="Take the tour">Help</button>
+    </div>
+  </header>
+
+  <div id="offline-banner" class="banner banner-offline" role="status" hidden>You're offline. The app is available, but routes and the map need a connection.</div>
+  <div id="ios-hint" class="banner banner-info" hidden>
+    <span>To install on iPhone or iPad: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</span>
+    <button id="ios-hint-dismiss" class="btn btn-small btn-ghost" type="button">Dismiss</button>
+  </div>
+
+  <main id="view" tabindex="-1" aria-live="polite"></main>
+
+  <nav class="bottom-nav" aria-label="Main (mobile)">
+    <a href="#/route" data-route="route"><span class="bn-icon" aria-hidden="true">&#x1F9ED;</span>Route</a>
+    <a href="#/explore" data-route="explore"><span class="bn-icon" aria-hidden="true">&#x1F5FA;</span>Explore</a>
+    <a href="#/about" data-route="about"><span class="bn-icon" aria-hidden="true">&#x2139;</span>About</a>
+  </nav>
+
+  <div id="toast" class="toast" role="status" hidden>
+    <span id="toast-text"></span>
+    <button id="toast-action" class="btn btn-small" type="button"></button>
+  </div>
+
+  <div id="overlay-root"></div>
+
+  <noscript><p class="noscript">SafeCross AI needs JavaScript to run.</p></noscript>
+
+  <!-- Static pages. Written as templates so no page text is ever built from strings of HTML. -->
+  <template id="tpl-about">
+    <section class="page">
+      <h1 tabindex="-1">About SafeCross AI</h1>
+      <p>SafeCross AI is a student research project. It ranks intersections by <em>relative</em> crash risk and compares route options by how many high-risk intersections each one passes.</p>
+
+      <h2>How the ranking works</h2>
+      <p>A model trained on New York City's crash history, the layout of the roads and recent crash activity gives every intersection a risk tier for the latest weekly snapshot:</p>
+      <ul>
+        <li><strong>Highest-priority (top 10%)</strong> are the intersections counted as "high-risk" on routes.</li>
+        <li><strong>Elevated</strong> is the next tier down (roughly the top 25% overall).</li>
+      </ul>
+      <p>These are <strong>rankings, not forecasts</strong>. They do not say a crash will happen to you, and a route with fewer flagged intersections is not guaranteed to be safe.</p>
+
+      <div class="banner banner-warn">
+        <strong>Westchester County is an unvalidated estimate.</strong> The model was trained on New York City crashes. Westchester has no crash records in this project, so its intersections are ranked on road design alone, against each other rather than against New York City, and nothing has checked them against real crashes.
+      </div>
+
+      <h2>Limitations</h2>
+      <ul>
+        <li><strong>One present-day street map.</strong> The model learns from crash history going back to 2012, but road data comes from today's OpenStreetMap.</li>
+        <li><strong>Counts are approximate.</strong> An intersection counts as "passed" if it is within about 25 metres of the route. Large intersections can be counted more than once.</li>
+        <li><strong>Weather is one location,</strong> so it cannot explain why one intersection ranks above another.</li>
+        <li><strong>A recent snapshot,</strong> not live conditions.</li>
+      </ul>
+
+      <h2>Model results</h2>
+      <div id="model-info"><p class="muted">Loading...</p></div>
+
+      <h2 id="legal">Terms of use and privacy</h2>
+      <div class="banner banner-warn" id="legal-draft">Draft text. The site owner should set a contact address and have this reviewed before sharing the app publicly.</div>
+      <p>SafeCross AI is provided for information only, <strong>as is</strong>, with no warranty. It is not a navigation system or a safety guarantee, and it is not for emergencies. Follow traffic laws and use your own judgement.</p>
+      <h3>Terms</h3>
+      <ul>
+        <li>Use the app lawfully and do not try to overload, scrape or misuse it.</li>
+        <li>Route options, travel times and route maps come from <strong>Google Maps Platform</strong>. By using route planning you also agree to the
+          <a href="https://cloud.google.com/maps-platform/terms" target="_blank" rel="noopener noreferrer">Google Maps Platform Terms of Service</a> and the
+          <a href="https://maps.google.com/help/terms_maps/" target="_blank" rel="noopener noreferrer">Google Maps/Google Earth Additional Terms of Service</a>.</li>
+        <li>Westchester County rankings are unvalidated estimates. Do not treat them as measured or verified risk.</li>
+      </ul>
+      <h3>Privacy</h3>
+      <ul>
+        <li><strong>What you enter.</strong> The start, destination and travel mode you type (or your location, if you tap "Use my location") are sent to this app's server, which passes them to Google to calculate routes. See the
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.</li>
+        <li><strong>What this app keeps.</strong> Route results are held only in your browser's memory while the page is open. The server does not save addresses or routes. Your browser stores two small preferences on your device: whether you have seen the intro tour, and whether you dismissed the iPhone install tip. There are no advertising or analytics cookies.</li>
+        <li><strong>Hosting.</strong> The host may keep standard technical logs (such as IP addresses and request times). This app also counts searches per visitor, in memory, to limit abuse.</li>
+        <li><strong>Maps in your browser.</strong> The map is a Google Map, so Google Maps scripts load in your browser and Google may set cookies or collect usage data as described in its privacy policy.</li>
+      </ul>
+      <p>Questions: <span data-contact>your-email@example.com</span></p>
+    </section>
+  </template>
+</body>
+</html>
