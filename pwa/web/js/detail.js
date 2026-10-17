@@ -1,6 +1,6 @@
 // The intersection details panel, shared by the Explore map and the route results so both show the same thing.
 // Built from text nodes only (see dom.js); nothing from the server is ever parsed as HTML.
-import { h } from "./dom.js";
+import { h, icon, leave } from "./dom.js";
 
 export const TIER_COLORS = ["#d7191c", "#fdae61", "#abd9e9", "#b5bdc6"];
 export const TIER_NAMES = ["Highest-priority (top 10%)", "Elevated relative risk", "Moderate relative risk", "Lower relative risk"];
@@ -47,13 +47,13 @@ function factGroup(group) {
 
 /** The full panel body for one intersection, from /api/intersections/<id>. */
 export function renderIntersectionDetail(detail, { onClose } = {}) {
-  const close = onClose ? h("button", { type: "button", class: "btn btn-small btn-ghost sheet-close", onclick: onClose, "aria-label": "Close details" }, "Close") : null;
+  const close = onClose ? h("button", { type: "button", class: "btn btn-small btn-ghost sheet-close", onclick: onClose, "aria-label": "Close details" }, icon("close", 18)) : null;
   const index = riskIndexText(detail);
   return h("div", { class: "detail" },
     h("div", { class: "detail-head" }, streetTitle(detail.label, "h3"), close),
     h("div", { class: "detail-risk" },
       tierPill(detail.tierCode),
-      h("span", { class: "muted" }, `${ordinal(detail.percentile)} percentile in ${detail.area}${detail.validated ? "" : " (unvalidated)"}`)),
+      h("span", { class: "muted" }, `${ordinal(detail.percentile)} percentile among nearby intersections in ${detail.area}${detail.validated ? "" : " (unvalidated)"}`)),
     index ? h("p", { class: "detail-index" }, index) : null,
     detail.note ? h("div", { class: "banner banner-warn" }, detail.note.replaceAll("**", "")) : null,
     (detail.facts || []).map(factGroup),
@@ -66,7 +66,32 @@ export function renderIntersectionDetail(detail, { onClose } = {}) {
 }
 
 /** Loading and error bodies so callers do not repeat them. */
-export const loadingBody = () => h("div", { class: "detail" }, h("span", { class: "spinner", "aria-hidden": "true" }), " Loading...");
+export const loadingBody = () => h("div", { class: "detail", "aria-busy": "true" },
+  h("span", { class: "visually-hidden" }, "Loading..."),
+  h("div", { class: "skeleton skeleton-title", "aria-hidden": "true" }),
+  [100, 72, 88, 64, 80].map((width) => h("div", { class: "skeleton skeleton-line", style: `width:${width}%`, "aria-hidden": "true" })));
 export function errorBody(message, onClose) {
   return h("div", { class: "detail", role: "alert" }, message, " ", h("button", { type: "button", class: "btn btn-small btn-ghost", onclick: onClose }, "Close"));
+}
+
+/**
+ * Shows `body` in the details sheet inside `host`. An open sheet keeps its frame and only swaps its contents, so moving
+ * between intersections doesn't replay the slide-in. Returns the sheet element.
+ */
+export function showSheet(host, body, { role = "dialog" } = {}) {
+  let sheet = host.querySelector(".sheet:not(.is-leaving)");
+  if (sheet) sheet.replaceChildren(body);
+  else {
+    sheet = h("div", { class: "sheet" }, body);
+    host.append(sheet);
+  }
+  sheet.setAttribute("role", role);
+  if (role === "dialog") sheet.setAttribute("aria-label", "Intersection details");
+  else sheet.removeAttribute("aria-label");
+  return sheet;
+}
+
+/** Slides the details sheet out, then removes it. */
+export function hideSheet(host) {
+  host.querySelectorAll(".sheet:not(.is-leaving)").forEach((sheet) => leave(sheet));
 }

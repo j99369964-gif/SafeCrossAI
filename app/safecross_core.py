@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import cKDTree
 
 # Which areas exist, and whether the model was trained and validated on them. File locations are NOT here:
 # each caller knows where its own files live. "nyc" is what the model was trained and validated on; every other
@@ -20,14 +21,24 @@ REGION_META = {
 }
 
 
+# Risk is ranked against NEARBY intersections, not the whole region: each intersection is compared with its
+# LOCAL_NEIGHBORS nearest intersections in the same region (about 1 km around it in NYC, 1.3 km in Westchester).
+# Ranking region-wide piled the top tier into the north of both regions; this way every neighbourhood has its own
+# riskiest intersections. Counting neighbours rather than using a fixed radius adapts to dense and sparse areas.
+LOCAL_NEIGHBORS = 200
+
+
 # A small, documented fallback list used to rank "top model signals" only if
 # the optional permutation_importance.csv isn't present in this deployment.
-# Ordered by what Notebook 2's ablation results showed mattered most: recent
-# crash history first, then road-design context.
+# Ordered by what Notebook 2 showed mattered most: long-run crash history first,
+# then recent history, then road-design context.
 FALLBACK_SIGNAL_FEATURES = [
-    "crashes_last_4w",
-    "crashes_last_8w",
+    "crashes_ewm_hl26w",
+    "crash_rate_all_history",
+    "crashes_last_52w",
     "weeks_since_last_crash",
+    "crashes_last_4w",
+    "neighbor_crashes_52w_400m",
     "max_connecting_speed_limit",
     "street_count",
     "max_connecting_lanes",
@@ -36,27 +47,85 @@ FALLBACK_SIGNAL_FEATURES = [
 ]
 
 # Features that describe WHERE or WHEN a row is rather than the intersection itself.
-# Weather and season are identical for every intersection in a given week, and
-# coordinates are only a location proxy, so none of them can explain why one
+# Season and the citywide crash totals are identical for every intersection in a given
+# week, and coordinates are only a location proxy, so none of them can explain why one
 # intersection ranks above another. They are skipped when picking "top signals".
+# ("current_week_" is the weather prefix older models used; kept so they still load.)
 NON_SIGNAL_FEATURES = {"latitude", "longitude"}
 
-NON_SIGNAL_PREFIXES = ("current_week_", "week_of_year")
+NON_SIGNAL_PREFIXES = ("current_week_", "week_of_year", "citywide_")
 
 def is_intersection_signal(feature: str) -> bool:
     return feature not in NON_SIGNAL_FEATURES and not feature.startswith(NON_SIGNAL_PREFIXES)
 
-TRANSFER_BLANKED_FEATURES = {
-    "latitude",
-    "longitude",
-    "crashes_last_1w",
-    "crashes_last_4w",
-    "crashes_last_8w",
-    "injuries_last_4w",
-    "pedestrian_casualty_crashes_last_8w",
-    "cyclist_casualty_crashes_last_8w",
-    "weeks_since_last_crash",
+
+class _CrashHistoryFeatures:
+    """The features a TRANSFER region (no crash records) has no values for, so they are blanked before scoring.
+
+    Decided by Notebook 2's naming rules rather than a hand-kept list, so a new crash-history feature can't be
+    forgotten here: anything derived from an area's own crash records names what it counts (crash, injury,
+    killed, casualty), and anything summed over nearby intersections starts with "neighbor_". Coordinates are
+    blanked too (transfer areas lie outside the training map). Citywide totals are NOT blanked: like the season,
+    build_westchester_assets.py copies them from the NYC snapshot week."""
+
+    MARKERS = ("crash", "injur", "killed", "casualt")
+
+    def __contains__(self, feature: object) -> bool:
+        if not isinstance(feature, str) or feature.startswith("citywide_"):
+            return False
+        return feature in ("latitude", "longitude") or feature.startswith("neighbor_") or any(marker in feature for marker in self.MARKERS)
+
+
+TRANSFER_BLANKED_FEATURES = _CrashHistoryFeatures()
+
+
+# Plain-language names for model features, used wherever a feature name is shown to a person.
+FEATURE_DISPLAY_NAMES = {
+    "crashes_last_1w": "Crashes this week",
+    "crashes_last_4w": "Crashes, last 4 weeks",
+    "crashes_last_8w": "Crashes, last 8 weeks",
+    "crashes_last_13w": "Crashes, last 13 weeks",
+    "crashes_last_26w": "Crashes, last 26 weeks",
+    "crashes_last_52w": "Crashes, last 52 weeks",
+    "crashes_last_104w": "Crashes, last 2 years",
+    "crash_weeks_last_52w": "Weeks with a crash, last 52 weeks",
+    "crash_weeks_last_156w": "Weeks with a crash, last 3 years",
+    "crash_rate_all_history": "Crashes per week since 2012",
+    "crashes_ewm_hl4w": "Crashes per week, recent trend",
+    "crashes_ewm_hl26w": "Crashes per week, past half-year trend",
+    "crashes_ewm_hl52w": "Crashes per week, past year trend",
+    "crashes_ewm_hl104w": "Crashes per week, two-year trend",
+    "injuries_last_4w": "Injuries, last 4 weeks",
+    "injuries_last_52w": "Injuries, last 52 weeks",
+    "injuries_ewm_hl52w": "Injuries per week, past year trend",
+    "killed_last_156w": "Deaths, last 3 years",
+    "pedestrian_casualty_crashes_last_8w": "Pedestrian injury crashes, last 8 weeks",
+    "pedestrian_casualty_crashes_last_52w": "Pedestrian injury crashes, last 52 weeks",
+    "pedestrian_casualty_ewm_hl52w": "Pedestrian injury crashes per week, past year trend",
+    "cyclist_casualty_crashes_last_8w": "Cyclist injury crashes, last 8 weeks",
+    "cyclist_casualty_crashes_last_52w": "Cyclist injury crashes, last 52 weeks",
+    "cyclist_casualty_ewm_hl52w": "Cyclist injury crashes per week, past year trend",
+    "weeks_since_last_crash": "Weeks since the last crash",
+    "relative_crash_rate_52w": "Crash rate vs. the average intersection, last 52 weeks",
+    "neighbor_crashes_4w_150m": "Crashes within 150 m, last 4 weeks",
+    "neighbor_crashes_52w_150m": "Crashes within 150 m, last 52 weeks",
+    "neighbor_crashes_4w_400m": "Crashes within 400 m, last 4 weeks",
+    "neighbor_crashes_52w_400m": "Crashes within 400 m, last 52 weeks",
+    "neighbor_crashes_ewm_hl26w_400m": "Crashes per week within 400 m, past half-year trend",
+    "neighbor_crash_rate_all_history_400m": "Crashes per week within 400 m since 2012",
+    "intersections_within_150m": "Intersections within 150 m",
+    "intersections_within_400m": "Intersections within 400 m",
+    "street_count": "Streets meeting here",
+    "max_connecting_speed_limit": "Highest speed limit (mph)",
+    "max_connecting_lanes": "Most lanes on a connecting street",
+    "touches_oneway_street": "Touches a one-way street",
+    "is_traffic_signal": "Traffic signal",
+    "is_crossing_tagged": "Marked crosswalk",
 }
+
+
+def feature_display_name(name: str) -> str:
+    return FEATURE_DISPLAY_NAMES.get(name, name.replace("_", " "))
 
 def unvalidated_note(region_labels: list[str]) -> str:
     names = " and ".join(region_labels)
@@ -119,12 +188,34 @@ def score_region(bundle: dict, frame: pd.DataFrame, region_key: str) -> pd.DataF
         frame["predicted_probability"] = predict_risk(
             bundle, frame, blank_features=TRANSFER_BLANKED_FEATURES, allow_missing=True
         )
-    frame["risk_tier"] = assign_risk_tier(frame["predicted_probability"])
-    frame["risk_percentile"] = frame["predicted_probability"].rank(pct=True) * 100
+    # Region-wide percentile: kept for the area view, which shows where risk concentrates.
+    frame["region_percentile"] = frame["predicted_probability"].rank(pct=True) * 100
+    frame["risk_percentile"], frame["local_mean_probability"] = local_risk_percentile(frame)
+    frame["risk_tier"] = tier_from_percentile(frame["risk_percentile"])
     frame["region"] = region_key
     frame["region_label"] = region["label"]
     frame["validated"] = bool(region["validated"])
     return frame
+
+def local_risk_percentile(frame: pd.DataFrame, neighbors: int = LOCAL_NEIGHBORS) -> tuple[pd.Series, pd.Series]:
+    """Each row's percentile (0-100) among itself and its `neighbors` nearest rows, plus the mean predicted
+    probability of that neighbourhood. Ties count half. Rows from different snapshot weeks are never compared."""
+    percentile = pd.Series(np.nan, index=frame.index)
+    local_mean = pd.Series(np.nan, index=frame.index)
+    weeks = frame["week_start"] if "week_start" in frame.columns else pd.Series(0, index=frame.index)
+    for _, rows in frame.groupby(weeks, sort=False):
+        k = min(neighbors + 1, len(rows))
+        latitude = rows["latitude"].to_numpy(float)
+        # Degrees to approximate kilometres, so "nearest" means nearest on the ground.
+        xy = np.c_[rows["longitude"].to_numpy(float) * np.cos(np.radians(latitude.mean())) * 111.32, latitude * 110.57]
+        _, index = cKDTree(xy).query(xy, k=k)
+        index = index.reshape(len(rows), k)
+        probability = rows["predicted_probability"].to_numpy(float)
+        own, around = probability[:, None], probability[index]  # `around` includes the row itself
+        below = (around < own).sum(1) + 0.5 * ((around == own).sum(1) - 1)
+        percentile.loc[rows.index] = (below + 0.5) / k * 100
+        local_mean.loc[rows.index] = around.mean(1)
+    return percentile, local_mean
 
 def same_region_rows(rows: pd.DataFrame, row: pd.Series) -> pd.DataFrame:
     """The rows in `rows` from the same region as `row` (used as the reference when saying how a value
@@ -182,12 +273,14 @@ def assign_risk_tier(probability: pd.Series) -> pd.Series:
     other rows currently loaded, not a literal "X% chance of a crash".
     Calibration is weak enough that presenting raw probabilities as literal
     odds would overstate precision (see Notebook 2's guardrails)."""
-    percentile = probability.rank(pct=True) * 100
+    return tier_from_percentile(probability.rank(pct=True) * 100)
 
+def tier_from_percentile(percentile: pd.Series) -> pd.Series:
+    """Tier labels from a 0-100 percentile (see assign_risk_tier and local_risk_percentile)."""
     conditions = [percentile >= 90, percentile >= 75, percentile >= 50]
     labels = ["Highest-priority (top 10%)", "Elevated relative risk", "Moderate relative risk"]
 
-    return pd.Series(np.select(conditions, labels, default="Lower relative risk"), index=probability.index)
+    return pd.Series(np.select(conditions, labels, default="Lower relative risk"), index=percentile.index)
 
 def top_signals_for_row(
     row: pd.Series,
@@ -400,6 +493,9 @@ def intersection_facts(row: pd.Series, validated: bool = True) -> list[dict]:
         c4, c8 = _number(row, "crashes_last_4w"), _number(row, "crashes_last_8w")
         items_history.append({"label": "Crashes, last 4 weeks", "value": "not available" if c4 is None else str(int(c4)), "tone": "warn" if (c4 or 0) > 0 else "neutral"})
         items_history.append({"label": "Crashes, last 8 weeks", "value": "not available" if c8 is None else str(int(c8)), "tone": "warn" if (c8 or 0) > 0 else "neutral"})
+        c52 = _number(row, "crashes_last_52w")  # only present for models trained with long-run history
+        if c52 is not None:
+            items_history.append({"label": "Crashes, last 52 weeks", "value": str(int(c52)), "tone": "warn" if c52 > 0 else "neutral"})
         injuries = _number(row, "injuries_last_4w")
         items_history.append({"label": "Injuries, last 4 weeks", "value": "not available" if injuries is None else str(int(injuries)), "tone": "warn" if (injuries or 0) > 0 else "neutral"})
         ped = _number(row, "pedestrian_casualty_crashes_last_8w")

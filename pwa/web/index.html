@@ -8,8 +8,8 @@
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b57d0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0b1f3a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111214" media="(prefers-color-scheme: dark)">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -17,6 +17,8 @@
   <meta name="apple-mobile-web-app-title" content="SafeCross">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
+  <link rel="preload" href="/fonts/overpass.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/overpass-mono.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/styles.css">
   <script type="module" src="/js/app.js"></script>
 </head>
@@ -24,18 +26,24 @@
   <a class="skip-link" href="#view">Skip to content</a>
 
   <header class="topbar">
-    <div class="brand">
-      <img src="/icons/favicon-32.png" width="28" height="28" alt="">
-      <span class="brand-name">SafeCross AI</span>
-    </div>
+    <a class="brand" href="#/home" aria-label="SafeCross AI, home">
+      <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" focusable="false">
+        <rect class="bm-bg" width="32" height="32" rx="8"/>
+        <g class="bm-stripes"><rect x="7" y="8" width="3" height="16" rx="1"/><rect x="12.5" y="8" width="3" height="16" rx="1"/><rect x="18" y="8" width="3" height="16" rx="1"/></g>
+        <circle class="bm-signal" cx="25" cy="10" r="3"/>
+      </svg>
+      <span class="brand-name">SafeCross<span class="brand-tag">AI</span></span>
+    </a>
     <nav class="tabs" aria-label="Main">
+      <a href="#/home" data-route="home">Home</a>
       <a href="#/route" data-route="route">Route</a>
       <a href="#/explore" data-route="explore">Explore</a>
       <a href="#/about" data-route="about">About</a>
+      <span class="nav-indicator" aria-hidden="true"></span>
     </nav>
     <div class="topbar-actions">
-      <button id="install-button" class="btn btn-small" type="button" hidden>Install app</button>
-      <button id="help-button" class="btn btn-small btn-ghost" type="button" aria-label="Take the tour">Help</button>
+      <button id="install-button" class="btn btn-small" type="button" hidden><span data-icon="download" data-size="18"></span>Install</button>
+      <button id="help-button" class="btn btn-small btn-ghost btn-icon" type="button" aria-label="Take the tour"><span data-icon="help"></span><span class="btn-icon-label">Tour</span></button>
     </div>
   </header>
 
@@ -48,9 +56,11 @@
   <main id="view" tabindex="-1" aria-live="polite"></main>
 
   <nav class="bottom-nav" aria-label="Main (mobile)">
-    <a href="#/route" data-route="route"><span class="bn-icon" aria-hidden="true">&#x1F9ED;</span>Route</a>
-    <a href="#/explore" data-route="explore"><span class="bn-icon" aria-hidden="true">&#x1F5FA;</span>Explore</a>
-    <a href="#/about" data-route="about"><span class="bn-icon" aria-hidden="true">&#x2139;</span>About</a>
+    <span class="nav-indicator" aria-hidden="true"></span>
+    <a href="#/home" data-route="home"><span class="bn-icon" data-icon="home" data-size="22"></span>Home</a>
+    <a href="#/route" data-route="route"><span class="bn-icon" data-icon="route" data-size="22"></span>Route</a>
+    <a href="#/explore" data-route="explore"><span class="bn-icon" data-icon="map" data-size="22"></span>Explore</a>
+    <a href="#/about" data-route="about"><span class="bn-icon" data-icon="info" data-size="22"></span>About</a>
   </nav>
 
   <div id="toast" class="toast" role="status" hidden>
@@ -64,16 +74,20 @@
 
   <!-- Static pages. Written as templates so no page text is ever built from strings of HTML. -->
   <template id="tpl-about">
-    <section class="page">
-      <h1 tabindex="-1">About SafeCross AI</h1>
-      <p>SafeCross AI is a student research project. It ranks intersections by <em>relative</em> crash risk and compares route options by how many high-risk intersections each one passes.</p>
+    <section class="page prose">
+      <header class="page-head">
+        <p class="kicker">Method &amp; limits</p>
+        <h1 tabindex="-1">About SafeCross AI</h1>
+      </header>
+      <p class="lede">SafeCross AI is a student research project. It ranks intersections by <em>relative</em> crash risk and compares route options by how many high-risk intersections each one passes.</p>
 
       <h2>How the ranking works</h2>
       <p>A model trained on New York City's crash history, the layout of the roads and recent crash activity gives every intersection a risk tier for the latest weekly snapshot:</p>
       <ul>
         <li><strong>Highest-priority (top 10%)</strong> are the intersections counted as "high-risk" on routes.</li>
-        <li><strong>Elevated</strong> is the next tier down (roughly the top 25% overall).</li>
+        <li><strong>Elevated</strong> is the next tier down (roughly the top 25%).</li>
       </ul>
+      <p>Tiers are <strong>local</strong>: each intersection is compared with the 200 intersections nearest to it (about a kilometre around it in New York City), so the top 10% means the riskiest tenth of its own neighbourhood, not of the whole city. The zoomed-out area view still compares whole areas with each other, so you can see where risk is higher overall.</p>
       <p>These are <strong>rankings, not forecasts</strong>. They do not say a crash will happen to you, and a route with fewer flagged intersections is not guaranteed to be safe.</p>
 
       <div class="banner banner-warn">
@@ -84,7 +98,7 @@
       <ul>
         <li><strong>One present-day street map.</strong> The model learns from crash history going back to 2012, but road data comes from today's OpenStreetMap.</li>
         <li><strong>Counts are approximate.</strong> An intersection counts as "passed" if it is within about 25 metres of the route. Large intersections can be counted more than once.</li>
-        <li><strong>Weather is one location,</strong> so it cannot explain why one intersection ranks above another.</li>
+        <li><strong>Neighbors share history.</strong> Part of each ranking comes from crashes at intersections within 150 to 400 metres, so neighboring intersections tend to rank alike.</li>
         <li><strong>A recent snapshot,</strong> not live conditions.</li>
       </ul>
 

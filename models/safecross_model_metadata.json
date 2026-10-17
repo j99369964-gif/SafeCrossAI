@@ -1,0 +1,138 @@
+{
+  "selected_model": "xgboost",
+  "selected_threshold": 0.17699472606182098,
+  "target": "target_any_crash_next_week",
+  "prediction_unit": "eligible OSM intersection node by week",
+  "prediction_horizon": "following week",
+  "feature_timing": "week t features predict week t+1",
+  "weather_used": false,
+  "numeric_features": [
+    "latitude",
+    "longitude",
+    "street_count",
+    "is_traffic_signal",
+    "is_crossing_tagged",
+    "touches_oneway_street",
+    "intersections_within_150m",
+    "intersections_within_400m",
+    "crashes_last_1w",
+    "crashes_last_4w",
+    "crashes_last_8w",
+    "injuries_last_4w",
+    "pedestrian_casualty_crashes_last_8w",
+    "cyclist_casualty_crashes_last_8w",
+    "weeks_since_last_crash",
+    "crashes_last_13w",
+    "crashes_last_26w",
+    "crashes_last_52w",
+    "crashes_last_104w",
+    "crash_weeks_last_52w",
+    "crash_weeks_last_156w",
+    "injuries_last_52w",
+    "killed_last_156w",
+    "pedestrian_casualty_crashes_last_52w",
+    "cyclist_casualty_crashes_last_52w",
+    "crash_rate_all_history",
+    "crashes_ewm_hl4w",
+    "crashes_ewm_hl26w",
+    "crashes_ewm_hl52w",
+    "crashes_ewm_hl104w",
+    "relative_crash_rate_52w",
+    "neighbor_crashes_4w_150m",
+    "neighbor_crashes_52w_150m",
+    "neighbor_crashes_4w_400m",
+    "neighbor_crashes_52w_400m",
+    "citywide_crashes_last_1w",
+    "citywide_crashes_last_4w",
+    "week_of_year_sin",
+    "week_of_year_cos"
+  ],
+  "feature_groups": {
+    "coordinates": [
+      "latitude",
+      "longitude"
+    ],
+    "road_layout": [
+      "street_count",
+      "is_traffic_signal",
+      "is_crossing_tagged",
+      "touches_oneway_street",
+      "intersections_within_150m",
+      "intersections_within_400m"
+    ],
+    "recent_history": [
+      "crashes_last_1w",
+      "crashes_last_4w",
+      "crashes_last_8w",
+      "injuries_last_4w",
+      "pedestrian_casualty_crashes_last_8w",
+      "cyclist_casualty_crashes_last_8w",
+      "weeks_since_last_crash"
+    ],
+    "long_run_history": [
+      "crashes_last_13w",
+      "crashes_last_26w",
+      "crashes_last_52w",
+      "crashes_last_104w",
+      "crash_weeks_last_52w",
+      "crash_weeks_last_156w",
+      "injuries_last_52w",
+      "killed_last_156w",
+      "pedestrian_casualty_crashes_last_52w",
+      "cyclist_casualty_crashes_last_52w",
+      "crash_rate_all_history",
+      "crashes_ewm_hl4w",
+      "crashes_ewm_hl26w",
+      "crashes_ewm_hl52w",
+      "crashes_ewm_hl104w",
+      "relative_crash_rate_52w"
+    ],
+    "neighborhood": [
+      "neighbor_crashes_4w_150m",
+      "neighbor_crashes_52w_150m",
+      "neighbor_crashes_4w_400m",
+      "neighbor_crashes_52w_400m"
+    ],
+    "citywide": [
+      "citywide_crashes_last_1w",
+      "citywide_crashes_last_4w"
+    ],
+    "season": [
+      "week_of_year_sin",
+      "week_of_year_cos"
+    ]
+  },
+  "neighbor_radii_m": [
+    150,
+    400
+  ],
+  "gradient_boosting": {
+    "max_trees": 3000,
+    "learning_rate": 0.03,
+    "early_stopping_rounds": 100,
+    "early_stopping_metric": "validation average precision"
+  },
+  "categorical_features": [
+    "node_highway",
+    "road_class"
+  ],
+  "training_start": "2012-07-02",
+  "training_end": "2022-02-28",
+  "validation_start": "2022-03-07",
+  "validation_end": "2024-03-25",
+  "test_start": "2024-04-01",
+  "test_end": "2026-04-27",
+  "analysis_start": "2012-07-01",
+  "analysis_end": "2026-05-12",
+  "random_seed": 42,
+  "train_negative_sample_fraction": 0.25,
+  "train_rows_before_negative_sampling": 25896905,
+  "train_rows_used": 7481908,
+  "validation_and_test_downsampled": false,
+  "slow_model_train_rows_cap": 1000000,
+  "node_match_distance_m": 75.0,
+  "minimum_street_count": 3,
+  "sklearn_version": "1.9.0",
+  "prediction_horizon_weeks": 1,
+  "xgboost_training_device": "cpu"
+}

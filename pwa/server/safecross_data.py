@@ -35,7 +35,7 @@ FINE_CELL = 0.005  # cells this small are only built for the part of the map in 
 
 
 def pretty_feature(name: str) -> str:
-    return name.replace("_", " ")
+    return core.feature_display_name(name)
 
 
 class SafeCrossData:
@@ -159,7 +159,8 @@ class SafeCrossData:
         }
 
     def grid(self, areas=None, tiers=None, cell=0.01, bounds=None) -> dict:
-        """Area-level overview as GeoJSON, colored by the average WITHIN-AREA percentile (0-1). `cell` is snapped to one
+        """Area-level overview as GeoJSON, colored by the average REGION-WIDE percentile (0-1), so it shows where
+        risk concentrates; the tiers and dots rank each intersection against its neighbourhood instead. `cell` is snapped to one
         of GRID_CELLS. Fine cells are built only inside `bounds` (south, north, west, east) so the response stays small."""
         cell = min(GRID_CELLS, key=lambda size: abs(size - float(cell)))
         use_bounds = bounds is not None and cell <= FINE_CELL
@@ -172,7 +173,7 @@ class SafeCrossData:
             pad_lat, pad_lng = (north - south) * 0.15, (east - west) * 0.15
             mask &= (self.lat >= south - pad_lat) & (self.lat <= north + pad_lat) & (self.lng >= west - pad_lng) & (self.lng <= east + pad_lng)
         rows = self.frame.loc[mask]
-        grid_input = rows[["latitude", "longitude", "risk_tier"]].assign(predicted_probability=rows["risk_percentile"] / 100.0)
+        grid_input = rows[["latitude", "longitude", "risk_tier"]].assign(predicted_probability=rows["region_percentile"] / 100.0)
         result = core.build_risk_grid(grid_input, cell_size=cell)
         if not use_bounds:
             if len(self._grid_cache) > 64:

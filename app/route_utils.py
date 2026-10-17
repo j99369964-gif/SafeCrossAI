@@ -62,7 +62,8 @@ DENSIFY_SPACING_M = 8.0
 #
 # * risk_index is the model's predicted probability divided by the average for the same area, so 1.0 means
 #   "an average intersection", 3.0 means "three times the average". The model has already weighed that
-#   intersection's crash history, speed limit, lanes, signals, crossings, one-way streets and the weather.
+#   intersection's recent and long-run crash history, crashes at nearby intersections, speed limit, lanes, signals,
+#   crossings and one-way streets.
 # * closeness (0 to 1) is how squarely the route runs through the intersection: 1.0 on the route line, falling to
 #   about 0.14 at the 25 m edge, so a street that merely runs alongside counts for less.
 # * vulnerability is 1.0 for driving. For walking and cycling it rises with the fastest connecting speed limit and
@@ -168,7 +169,7 @@ class IntersectionIndex:
         most recent snapshot week if the data has several, and adds `risk_index` (see the score notes above)."""
         wanted = [
             "node_id", "latitude", "longitude", "risk_tier", "risk_percentile",
-            "predicted_probability", "intersection_label", "streets", "week_start",
+            "predicted_probability", "local_mean_probability", "intersection_label", "streets", "week_start",
             "region", "region_label", "validated",
             "max_connecting_speed_limit", "max_connecting_lanes", "is_traffic_signal", "is_crossing_tagged", "street_count",
             "sidewalk", "bike_lane", "lit", "node_control", "bridge_or_tunnel", "roundabout",
@@ -180,7 +181,11 @@ class IntersectionIndex:
         if "predicted_probability" in data.columns:
             groups = data["region"] if "region" in data.columns else pd.Series("all", index=data.index)
             probability = data["predicted_probability"].astype(float)
-            mean = probability.groupby(groups).transform("mean").replace(0, np.nan)
+            # Relative to the intersection's own neighbourhood when score_region supplied it, else to its region.
+            if "local_mean_probability" in data.columns:
+                mean = data["local_mean_probability"].astype(float).replace(0, np.nan)
+            else:
+                mean = probability.groupby(groups).transform("mean").replace(0, np.nan)
             cap = (probability / mean).groupby(groups).transform(lambda s: s.quantile(INDEX_CAP_QUANTILE))
             data["risk_index"] = (probability / mean).clip(upper=cap).fillna(1.0)
         else:  # no probabilities: fall back to the tier so the score still means something

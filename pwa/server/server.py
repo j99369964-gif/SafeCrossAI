@@ -8,6 +8,8 @@ What it does
 * POST /api/routes asks Google's Routes API (server side, key never sent to the browser) and ranks the options by travel
   time and by how many high-risk intersections each passes.
 * GET  /api/explore/*, /api/intersections/<id>: the risk map data.
+* GET  /api/history/cells: OBSERVED crash counts per H3 hexagon for a period (the 3D crash-history map). Built by
+  scripts/build_historical_density.py; the endpoint answers 404 if that file isn't there.
 
 Google Maps Platform policy (see app/route_utils.py): route results are never cached or stored here, every API response is
 `Cache-Control: no-store`, and the browser draws routes on a Google Map.
@@ -35,6 +37,7 @@ import requests
 from flask import Flask, Response, jsonify, request, send_from_directory
 
 from safecross_data import SafeCrossData, TIER_ORDER  # noqa: E402  (also puts app/ on sys.path)
+from historical import HistoricalDensity  # noqa: E402
 from route_utils import (  # noqa: E402
     TIER_ELEVATED,
     TIER_HIGH,
@@ -226,6 +229,7 @@ def create_app(config: dict | None = None) -> Flask:
         "http_post": requests.post,
         "clock": time.time,
         "data": None,
+        "history": None,
         "web_dir": WEB_DIR,
     }
     cfg.update(config or {})
@@ -233,6 +237,7 @@ def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__, static_folder=None)
     app.config["MAX_CONTENT_LENGTH"] = 8 * 1024  # request bodies here are tiny
     data: SafeCrossData = cfg["data"] or SafeCrossData(cfg["repo_root"])
+    history: HistoricalDensity | None = cfg["history"] or HistoricalDensity.load(cfg["repo_root"])
     web_dir: Path = Path(cfg["web_dir"])
     limiter = SlidingWindowLimiter(cfg["rate_limit_per_hour"], 3600, cfg["clock"])
     daily = DailyCap(cfg["daily_route_cap"], cfg["clock"])
@@ -266,6 +271,7 @@ def create_app(config: dict | None = None) -> Flask:
                 "tiers": TIER_ORDER,
                 "bounds": data.bounds,
                 "maxPoints": 1500,
+                "history": history.meta() if history else None,
             }
         )
 
@@ -347,6 +353,15 @@ def create_app(config: dict | None = None) -> Flask:
         if south > north or west > east:
             return error("The viewport is inverted.", 400)
         return jsonify(data.points(south, north, west, east, areas, tiers, limit))
+
+    @app.get("/api/history/cells")
+    def api_history_cells():
+        if history is None:
+            return error("Crash history isn't available on this server.", 404)
+        try:
+            return jsonify(history.period(request.args.get("from", ""), request.args.get("to", "")))
+        except ValueError:
+            return error("from and to must be months written YYYY-MM.", 400)
 
     @app.get("/api/intersections/<node_id>")
     def api_intersection(node_id):

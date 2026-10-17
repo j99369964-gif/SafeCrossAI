@@ -10,9 +10,10 @@ scikit-learn
 joblib
 requests
 
-# Whichever model Notebook 2 selected also needs its library at load time. Uncomment what you use:
-# xgboost
-# lightgbm
+# The saved model needs its library at load time. Notebook 2 picks XGBoost or LightGBM (they score within
+# a hair of each other), so both are installed.
+xgboost
+lightgbm
 
 # Only for scripts/build_intersection_info.py and scripts/build_westchester_assets.py
 # osmnx

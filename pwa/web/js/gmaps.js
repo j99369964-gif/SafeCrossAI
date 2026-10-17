@@ -41,6 +41,36 @@ export function loadGoogleMaps(key) {
   return loadPromise;
 }
 
+// A quiet base map in the app's paper/asphalt palette, so the risk dots and route lines carry the colour.
+const LIGHT_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#f1eee6" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#5f6064" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#f7f5ef" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ visibility: "on" }, { color: "#e1e5d4" }] },
+  { featureType: "transit", elementType: "labels.icon", stylers: [{ saturation: -100 }, { lightness: 20 }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#e9e2d0" }] },
+  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#cdd6da" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#c9c2b2" }] },
+];
+const DARK_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#1a1c1f" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8f8c84" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#111214" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ visibility: "on" }, { color: "#1c231e" }] },
+  { featureType: "transit", elementType: "labels.icon", stylers: [{ saturation: -100 }, { lightness: -30 }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#2a2d31" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#38352d" }] },
+  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e171c" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#3a3d42" }] },
+];
+const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+export const mapIsDark = () => Boolean(darkQuery && darkQuery.matches);
+
 /** Puts the shared map inside `container` and returns { maps, map }. */
 export async function mountSharedMap(key, container, options = {}) {
   const maps = await loadGoogleMaps(key);
@@ -54,18 +84,24 @@ export async function mountSharedMap(key, container, options = {}) {
       streetViewControl: false,
       clickableIcons: false,
       fullscreenControl: true,
+      styles: mapIsDark() ? DARK_STYLE : LIGHT_STYLE,
+      backgroundColor: mapIsDark() ? "#1a1c1f" : "#f1eee6",
     });
+    // The frosted top bar and bottom nav would re-blur the map under them on every frame of a pan or zoom; keep
+    // them solid while the map moves (see .map-moving in styles.css).
+    const root = document.documentElement;
+    const moving = () => root.classList.add("map-moving");
+    sharedMap.addListener("dragstart", moving);
+    sharedMap.addListener("zoom_changed", moving);
+    sharedMap.addListener("idle", () => root.classList.remove("map-moving"));
+    if (darkQuery && darkQuery.addEventListener) {
+      darkQuery.addEventListener("change", () => sharedMap.setOptions({ styles: mapIsDark() ? DARK_STYLE : LIGHT_STYLE }));
+    }
   } else {
     maps.event.trigger(sharedMap, "resize"); // the container may have a new size
   }
   return { maps, map: sharedMap };
 }
-
-export const metersForPixels = (map, pixels) => {
-  // Metres covered by `pixels` screen pixels at the current zoom and latitude, so dots keep a constant on-screen size.
-  const latitude = map.getCenter().lat();
-  return (pixels * 156543.03392 * Math.cos((latitude * Math.PI) / 180)) / Math.pow(2, map.getZoom());
-};
 
 export function describeMapsError(error) {
   return error && error.message ? error.message : "The map couldn't be loaded.";

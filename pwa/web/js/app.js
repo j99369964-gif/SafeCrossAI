@@ -1,7 +1,8 @@
 // SafeCross AI: app shell. Hash router, service-worker registration (with an "update ready" prompt), offline banner,
 // install button, and the first-run tour.
-import { h, clear } from "./dom.js";
+import { h, clear, hydrateIcons, reducedMotion } from "./dom.js";
 import * as api from "./api.js";
+import { mountHomeView } from "./homeview.js";
 import { mountRouteView } from "./routeview.js";
 import { mountExploreView } from "./exploreview.js";
 import { openTour, shouldAutoOpen } from "./onboarding.js";
@@ -9,14 +10,25 @@ import { initInstall } from "./install.js";
 
 const $ = (id) => document.getElementById(id);
 const viewRoot = $("view");
-const state = { config: null, current: null, route: null, pendingExample: false };
+const state = { config: null, current: null, route: null, pendingExample: false, tourOpen: false };
 
 // ---------------------------------------------------------------------- toast
+function hideToast() {
+  const toast = $("toast");
+  if (toast.hidden || reducedMotion()) { toast.hidden = true; return Promise.resolve(); }
+  return new Promise((resolve) => {
+    const done = () => { toast.classList.remove("is-leaving"); toast.hidden = true; resolve(); };
+    toast.classList.add("is-leaving");
+    toast.addEventListener("animationend", done, { once: true });
+    setTimeout(done, 300);
+  });
+}
+
 function showToast(text, actionLabel, onAction) {
   $("toast-text").textContent = text;
   const action = $("toast-action");
   action.textContent = actionLabel;
-  action.onclick = () => { $("toast").hidden = true; onAction(); };
+  action.onclick = () => { hideToast().then(onAction); };
   $("toast").hidden = false;
 }
 
@@ -75,6 +87,7 @@ function renderAbout(root) {
 }
 
 const PAGES = {
+  home: { title: "Home", mount: (root) => mountHomeView(root) },
   route: { title: "Plan a safer route", mount: (root, ctx) => mountRouteView(root, ctx) },
   explore: { title: "Explore the risk map", mount: (root, ctx) => mountExploreView(root, ctx) },
   about: { title: "About", mount: (root) => renderAbout(root) },
@@ -82,15 +95,29 @@ const PAGES = {
 
 function currentRouteName() {
   const match = /^#\/([a-z]+)/.exec(window.location.hash || "");
-  if (!match) return "route";
+  if (!match) return "home";
   if (match[1] === "legal") return "about"; // old/shared links to the terms land on About
-  return PAGES[match[1]] ? match[1] : "route";
+  return PAGES[match[1]] ? match[1] : "home";
 }
 
 function highlightNav(name) {
   document.querySelectorAll("[data-route]").forEach((link) => {
     if (link.dataset.route === name) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
+  });
+  placeNavIndicators();
+}
+
+// The amber underline (top bar) and the pill (bottom bar) slide to the current tab. The first placement is instant.
+function placeNavIndicators() {
+  document.querySelectorAll(".nav-indicator").forEach((indicator) => {
+    const nav = indicator.parentElement;
+    const link = nav.querySelector('[aria-current="page"]');
+    const box = link && link.getBoundingClientRect();
+    if (!box || !box.width) return; // this nav is hidden at the current screen width
+    indicator.style.setProperty("--x", `${box.left - nav.getBoundingClientRect().left}px`);
+    indicator.style.setProperty("--w", `${box.width}px`);
+    if (!indicator.classList.contains("is-placed")) requestAnimationFrame(() => indicator.classList.add("is-placed"));
   });
 }
 
@@ -102,7 +129,7 @@ const context = {
 function offlineScreen(message) {
   clear(viewRoot);
   viewRoot.append(h("section", { class: "page" }, h("h1", { tabindex: "-1" }, "SafeCross AI"),
-    h("div", { class: "banner banner-offline", style: "border-radius:10px;justify-content:space-between" }, message,
+    h("div", { class: "banner banner-offline", style: "border-radius:12px;justify-content:space-between" }, message,
       h("button", { type: "button", class: "btn btn-small", onclick: () => navigate() }, "Try again"))));
 }
 
@@ -122,14 +149,19 @@ export async function navigate() {
   state.current = PAGES[name].mount(viewRoot, context);
   if (state.current && state.current.heading) state.current.heading.focus();
   if (window.location.hash === "#/legal") { const legal = document.getElementById("legal"); if (legal) legal.scrollIntoView(); }
+  // The tour opens the first time the visitor reaches the route planner, not on the home page.
+  if (name === "route" && !state.tourOpen && shouldAutoOpen(window.location.search)) startTour(0);
 }
 
 // ---------------------------------------------------------------------- tour
 function startTour(startStep = 0) {
+  if (state.tourOpen) return;
+  state.tourOpen = true;
   openTour({
     host: $("overlay-root"),
     startStep,
     onClose: ({ example }) => {
+      state.tourOpen = false;
       if (!example) return;
       state.pendingExample = true;
       if (state.route === "route") navigate(); // already here: remount so the example runs
@@ -143,14 +175,17 @@ function syncOnline() { $("offline-banner").hidden = navigator.onLine !== false;
 
 // ---------------------------------------------------------------------- boot
 export function boot() {
+  hydrateIcons(document.body);
   window.addEventListener("hashchange", () => navigate());
+  window.addEventListener("resize", placeNavIndicators);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeNavIndicators); // web fonts change tab widths
   window.addEventListener("online", syncOnline);
   window.addEventListener("offline", syncOnline);
   syncOnline();
   $("help-button").addEventListener("click", () => startTour(0));
   initInstall({ button: $("install-button"), iosHint: $("ios-hint"), iosDismiss: $("ios-hint-dismiss") });
   registerServiceWorker();
-  navigate().then(() => { if (shouldAutoOpen(window.location.search)) startTour(0); });
+  navigate();
 }
 
 boot();
