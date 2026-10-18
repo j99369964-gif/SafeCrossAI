@@ -7,7 +7,14 @@ pwa/tunnel/keys.ps1
 # Python
 __pycache__/
 *.pyc
+venv/
 
 # OSMnx download cache
 cache/
 scripts/cache/
+
+# Emacs temp. files
+\#*\#
+*~
+.#*
+tramp
