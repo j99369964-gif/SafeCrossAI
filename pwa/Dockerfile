@@ -20,5 +20,7 @@ COPY data/sample /srv/data/sample
 COPY data/processed/historical_spatial_monthly.parquet data/processed/historical_cells.parquet /srv/data/processed/
 COPY reports /srv/reports
 
+EXPOSE ${PORT}
+
 # One worker: the rate limiter keeps its counts in memory. For several workers, move it to a shared store (e.g. Redis).
 CMD ["sh", "-c", "gunicorn 'server:create_app()' --chdir /srv/pwa/server --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 60"]
