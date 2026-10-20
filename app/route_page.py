@@ -32,6 +32,7 @@ except StreamlitAPIException:
 from app_utils import load_scored_demo_data  # noqa: E402
 from onboarding import EXAMPLE_FROM, EXAMPLE_TO  # noqa: E402
 from route_map import render_route_map  # noqa: E402
+from street_names import default_lookup as street_names  # noqa: E402
 from route_utils import (  # noqa: E402
     PASS_RADIUS_M,
     TIER_ELEVATED,
@@ -175,6 +176,7 @@ if submitted or auto_search:
             with st.spinner("Finding route options..."):
                 routes, notices = fetch_routes(routes_key, origin, destination, TRAVEL_MODES[mode_label])
             risks = [analyze_route(route, index, mode=TRAVEL_MODES[mode_label]) for route in routes]
+            street_names.fill_routes(risks)  # the biggest contributors get street names instead of coordinates
             st.session_state.route_results = {
                 "routes": routes,
                 "risks": risks,

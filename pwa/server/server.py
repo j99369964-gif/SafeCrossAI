@@ -38,6 +38,7 @@ from flask import Flask, Response, jsonify, request, send_from_directory
 
 from safecross_data import SafeCrossData, TIER_ORDER  # noqa: E402  (also puts app/ on sys.path)
 from historical import HistoricalDensity  # noqa: E402
+from street_names import StreetNameLookup, needs_name  # noqa: E402
 from route_utils import (  # noqa: E402
     TIER_ELEVATED,
     TIER_HIGH,
@@ -239,6 +240,8 @@ def create_app(config: dict | None = None) -> Flask:
         "clock": time.time,
         "data": None,
         "history": None,
+        "street_names": None,  # a street_names.StreetNameLookup; set STREET_NAME_LOOKUP=0 to keep coordinate labels
+        "street_name_lookup": env.get("STREET_NAME_LOOKUP", "1") != "0",
         "web_dir": WEB_DIR,
     }
     cfg.update(config or {})
@@ -248,6 +251,7 @@ def create_app(config: dict | None = None) -> Flask:
     data: SafeCrossData = cfg["data"] or SafeCrossData(cfg["repo_root"])
     history: HistoricalDensity | None = cfg["history"] or HistoricalDensity.load(cfg["repo_root"])
     web_dir: Path = Path(cfg["web_dir"])
+    street_names: StreetNameLookup = cfg["street_names"] or StreetNameLookup(enabled=cfg["street_name_lookup"])
     limiter = SlidingWindowLimiter(cfg["rate_limit_per_hour"], 3600, cfg["clock"])
     daily = DailyCap(cfg["daily_route_cap"], cfg["clock"])
     build_id = web_build_id(web_dir)
@@ -315,6 +319,7 @@ def create_app(config: dict | None = None) -> Flask:
         except RoutingError as problem:
             return error(str(problem), 422)
         risks = [analyze_route(route, data.index, mode=mode_code) for route in routes]
+        street_names.fill_routes(risks)  # the biggest contributors get street names instead of coordinates
         comparison = compare_routes(routes, risks)
         return jsonify(serialize_trip(routes, risks, comparison, notices, data.index, origin, destination, mode_code))
 
@@ -375,6 +380,8 @@ def create_app(config: dict | None = None) -> Flask:
     @app.get("/api/intersections/<node_id>")
     def api_intersection(node_id):
         detail = data.intersection(node_id)
+        if detail and needs_name(detail["label"]):
+            detail["label"] = street_names.cached(node_id) or detail["label"]
         return jsonify(detail) if detail else error("That intersection wasn't found.", 404)
 
     @app.get("/api/model")

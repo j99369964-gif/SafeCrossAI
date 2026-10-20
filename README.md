@@ -52,6 +52,11 @@ model's predicted risk divided by the area average. For walking and cycling, vul
 speed and with recent pedestrian or cyclist casualty crashes. The weights are judgement calls, not fitted values.
 The route with the lowest score is recommended, and routes within 5% of each other are treated as equal.
 
+Intersections are named from `data/sample/intersection_info.csv`. When that file has no name for one of the
+intersections that add the most to a route's score, the app asks OpenStreetMap (Overpass API, no key needed) which
+streets meet at that node and shows them instead of coordinates (`app/street_names.py`). Set `STREET_NAME_LOOKUP=0`
+to turn this off on the web server.
+
 ## Westchester
 
 The model is trained on NYC. Westchester results are a transfer test and are not validated. See
