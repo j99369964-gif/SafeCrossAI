@@ -30,6 +30,7 @@ export function boldParts(parts) {
 // 24x24 stroke icons, each a list of [tag, attributes]. Built with createElementNS, so still no HTML parsing.
 const SVG_NS = "http://www.w3.org/2000/svg";
 const ICONS = {
+  home: [["path", { d: "M4 10.5 12 4l8 6.5V20h-5.5v-5.5h-5V20H4z" }]],
   route: [["circle", { cx: 6, cy: 18, r: 2.5 }], ["circle", { cx: 18, cy: 6, r: 2.5 }], ["path", { d: "M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5" }]],
   map: [["path", { d: "M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" }], ["path", { d: "M9 4v13.5M15 6.5V20" }]],
   info: [["circle", { cx: 12, cy: 12, r: 9 }], ["path", { d: "M12 11v5.5M12 7.6v.01" }]],
@@ -42,6 +43,12 @@ const ICONS = {
   arrow: [["path", { d: "M5 12h14M13 6l6 6-6 6" }]],
   external: [["path", { d: "M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" }]],
   download: [["path", { d: "M12 4v11M7 10l5 5 5-5M5 20h14" }]],
+  database: [["ellipse", { cx: 12, cy: 6, rx: 7, ry: 2.8 }], ["path", { d: "M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8" }]],
+  cloud: [["path", { d: "M7 18h10.5a3.5 3.5 0 0 0 .4-7A5.5 5.5 0 0 0 7.3 9.6 4.2 4.2 0 0 0 7 18z" }]],
+  heart: [["path", { d: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" }]],
+  users: [["circle", { cx: 9, cy: 8, r: 3 }], ["path", { d: "M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 14a5 5 0 0 1 3 5" }]],
+  lock: [["rect", { x: 5, y: 11, width: 14, height: 9, rx: 2 }], ["path", { d: "M8 11V8a4 4 0 0 1 8 0v3" }]],
+  flag: [["path", { d: "M5 21V4M5 4h11l-2 4 2 4H5" }]],
 };
 
 export function icon(name, size = 20) {

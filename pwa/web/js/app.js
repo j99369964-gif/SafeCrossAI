@@ -2,6 +2,7 @@
 // install button, and the first-run tour.
 import { h, clear, hydrateIcons, reducedMotion } from "./dom.js";
 import * as api from "./api.js";
+import { mountHomeView } from "./homeview.js";
 import { mountRouteView } from "./routeview.js";
 import { mountExploreView } from "./exploreview.js";
 import { openTour, shouldAutoOpen } from "./onboarding.js";
@@ -9,7 +10,7 @@ import { initInstall } from "./install.js";
 
 const $ = (id) => document.getElementById(id);
 const viewRoot = $("view");
-const state = { config: null, current: null, route: null, pendingExample: false };
+const state = { config: null, current: null, route: null, pendingExample: false, tourOpen: false };
 
 // ---------------------------------------------------------------------- toast
 function hideToast() {
@@ -86,6 +87,7 @@ function renderAbout(root) {
 }
 
 const PAGES = {
+  home: { title: "Home", mount: (root) => mountHomeView(root) },
   route: { title: "Plan a safer route", mount: (root, ctx) => mountRouteView(root, ctx) },
   explore: { title: "Explore the risk map", mount: (root, ctx) => mountExploreView(root, ctx) },
   about: { title: "About", mount: (root) => renderAbout(root) },
@@ -93,9 +95,9 @@ const PAGES = {
 
 function currentRouteName() {
   const match = /^#\/([a-z]+)/.exec(window.location.hash || "");
-  if (!match) return "route";
+  if (!match) return "home";
   if (match[1] === "legal") return "about"; // old/shared links to the terms land on About
-  return PAGES[match[1]] ? match[1] : "route";
+  return PAGES[match[1]] ? match[1] : "home";
 }
 
 function highlightNav(name) {
@@ -147,14 +149,19 @@ export async function navigate() {
   state.current = PAGES[name].mount(viewRoot, context);
   if (state.current && state.current.heading) state.current.heading.focus();
   if (window.location.hash === "#/legal") { const legal = document.getElementById("legal"); if (legal) legal.scrollIntoView(); }
+  // The tour opens the first time the visitor reaches the route planner, not on the home page.
+  if (name === "route" && !state.tourOpen && shouldAutoOpen(window.location.search)) startTour(0);
 }
 
 // ---------------------------------------------------------------------- tour
 function startTour(startStep = 0) {
+  if (state.tourOpen) return;
+  state.tourOpen = true;
   openTour({
     host: $("overlay-root"),
     startStep,
     onClose: ({ example }) => {
+      state.tourOpen = false;
       if (!example) return;
       state.pendingExample = true;
       if (state.route === "route") navigate(); // already here: remount so the example runs
@@ -178,7 +185,7 @@ export function boot() {
   $("help-button").addEventListener("click", () => startTour(0));
   initInstall({ button: $("install-button"), iosHint: $("ios-hint"), iosDismiss: $("ios-hint-dismiss") });
   registerServiceWorker();
-  navigate().then(() => { if (shouldAutoOpen(window.location.search)) startTour(0); });
+  navigate();
 }
 
 boot();

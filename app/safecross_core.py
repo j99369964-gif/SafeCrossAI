@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import cKDTree
 
 # Which areas exist, and whether the model was trained and validated on them. File locations are NOT here:
 # each caller knows where its own files live. "nyc" is what the model was trained and validated on; every other
@@ -18,6 +19,13 @@ REGION_META = {
     "nyc": {"label": "New York City", "validated": True},
     "westchester": {"label": "Westchester County", "validated": False},
 }
+
+
+# Risk is ranked against NEARBY intersections, not the whole region: each intersection is compared with its
+# LOCAL_NEIGHBORS nearest intersections in the same region (about 1 km around it in NYC, 1.3 km in Westchester).
+# Ranking region-wide piled the top tier into the north of both regions; this way every neighbourhood has its own
+# riskiest intersections. Counting neighbours rather than using a fixed radius adapts to dense and sparse areas.
+LOCAL_NEIGHBORS = 200
 
 
 # A small, documented fallback list used to rank "top model signals" only if
@@ -180,12 +188,34 @@ def score_region(bundle: dict, frame: pd.DataFrame, region_key: str) -> pd.DataF
         frame["predicted_probability"] = predict_risk(
             bundle, frame, blank_features=TRANSFER_BLANKED_FEATURES, allow_missing=True
         )
-    frame["risk_tier"] = assign_risk_tier(frame["predicted_probability"])
-    frame["risk_percentile"] = frame["predicted_probability"].rank(pct=True) * 100
+    # Region-wide percentile: kept for the area view, which shows where risk concentrates.
+    frame["region_percentile"] = frame["predicted_probability"].rank(pct=True) * 100
+    frame["risk_percentile"], frame["local_mean_probability"] = local_risk_percentile(frame)
+    frame["risk_tier"] = tier_from_percentile(frame["risk_percentile"])
     frame["region"] = region_key
     frame["region_label"] = region["label"]
     frame["validated"] = bool(region["validated"])
     return frame
+
+def local_risk_percentile(frame: pd.DataFrame, neighbors: int = LOCAL_NEIGHBORS) -> tuple[pd.Series, pd.Series]:
+    """Each row's percentile (0-100) among itself and its `neighbors` nearest rows, plus the mean predicted
+    probability of that neighbourhood. Ties count half. Rows from different snapshot weeks are never compared."""
+    percentile = pd.Series(np.nan, index=frame.index)
+    local_mean = pd.Series(np.nan, index=frame.index)
+    weeks = frame["week_start"] if "week_start" in frame.columns else pd.Series(0, index=frame.index)
+    for _, rows in frame.groupby(weeks, sort=False):
+        k = min(neighbors + 1, len(rows))
+        latitude = rows["latitude"].to_numpy(float)
+        # Degrees to approximate kilometres, so "nearest" means nearest on the ground.
+        xy = np.c_[rows["longitude"].to_numpy(float) * np.cos(np.radians(latitude.mean())) * 111.32, latitude * 110.57]
+        _, index = cKDTree(xy).query(xy, k=k)
+        index = index.reshape(len(rows), k)
+        probability = rows["predicted_probability"].to_numpy(float)
+        own, around = probability[:, None], probability[index]  # `around` includes the row itself
+        below = (around < own).sum(1) + 0.5 * ((around == own).sum(1) - 1)
+        percentile.loc[rows.index] = (below + 0.5) / k * 100
+        local_mean.loc[rows.index] = around.mean(1)
+    return percentile, local_mean
 
 def same_region_rows(rows: pd.DataFrame, row: pd.Series) -> pd.DataFrame:
     """The rows in `rows` from the same region as `row` (used as the reference when saying how a value
@@ -214,10 +244,13 @@ def merge_intersection_info(frame: pd.DataFrame, info: pd.DataFrame | None) -> p
         if "intersection_label" in frame.columns:
             label = label.where(label.notna(), frame["intersection_label"])
         frame["intersection_label"] = label
-    for column in ("streets", "sidewalk", "bike_lane", "lit", "node_control"):
+    # Speed limit, sidewalk and bike lane come from NYC's own data for NYC intersections (scripts/add_nyc_street_facts.py)
+    # and from OpenStreetMap elsewhere; the *_source columns say which.
+    for column in ("streets", "sidewalk", "bike_lane", "bike_lane_type", "lit", "node_control",
+                   "speed_limit_source", "sidewalk_source", "bike_lane_source"):
         if column in info.columns:
             frame[column] = key.map(info[column])
-    for column in ("bridge_or_tunnel", "roundabout"):
+    for column in ("bridge_or_tunnel", "roundabout", "max_connecting_speed_limit", "sidewalk_sides", "sidewalk_sides_total"):
         if column in info.columns:
             frame[column] = pd.to_numeric(key.map(info[column]), errors="coerce")
     return frame
@@ -243,12 +276,14 @@ def assign_risk_tier(probability: pd.Series) -> pd.Series:
     other rows currently loaded, not a literal "X% chance of a crash".
     Calibration is weak enough that presenting raw probabilities as literal
     odds would overstate precision (see Notebook 2's guardrails)."""
-    percentile = probability.rank(pct=True) * 100
+    return tier_from_percentile(probability.rank(pct=True) * 100)
 
+def tier_from_percentile(percentile: pd.Series) -> pd.Series:
+    """Tier labels from a 0-100 percentile (see assign_risk_tier and local_risk_percentile)."""
     conditions = [percentile >= 90, percentile >= 75, percentile >= 50]
     labels = ["Highest-priority (top 10%)", "Elevated relative risk", "Moderate relative risk"]
 
-    return pd.Series(np.select(conditions, labels, default="Lower relative risk"), index=probability.index)
+    return pd.Series(np.select(conditions, labels, default="Lower relative risk"), index=percentile.index)
 
 def top_signals_for_row(
     row: pd.Series,
@@ -390,7 +425,20 @@ CONTROL_NAMES = {
     "traffic_signals": "Traffic signal", "stop": "Stop sign", "give_way": "Yield sign",
     "mini_roundabout": "Mini roundabout", "crossing": "Marked crossing",
 }
-FAST_MPH = 35  # same cut-off candidate_measures_for_row uses
+
+NYC_DEFAULT_MPH = 25  # New York City's default speed limit since November 2014
+BIKE_LANE_TEXT = {
+    "protected": ("Protected lane or off-street path", "good"),
+    "lane": ("Painted bike lane", "good"),
+    "shared": ("Shared lane or signed bike route", "neutral"),
+    "none": ("None", "neutral"),
+}
+
+
+def _text(row, name) -> str:
+    value = row.get(name) if hasattr(row, "get") else None
+    return "" if value is None or (not isinstance(value, str) and pd.isna(value)) else str(value)
+
 
 def _number(row, name):
     value = row.get(name) if hasattr(row, "get") else None
@@ -406,11 +454,15 @@ def intersection_facts(row: pd.Series, validated: bool = True) -> list[dict]:
     say is reported as such: a missing OpenStreetMap tag is "not mapped", never "no"."""
     items_road, items_walk, items_history = [], [], []
 
+    city = _text(row, "speed_limit_source") == "nyc_dot" or _text(row, "sidewalk_source") == "nyc_planimetric"
     speed = _number(row, "max_connecting_speed_limit")
     if speed is None:
-        items_road.append({"label": "Speed limit", "value": "Not recorded in OpenStreetMap", "tone": "neutral"})
+        items_road.append({"label": "Speed limit", "value": "Not listed by NYC DOT" if city else "Not recorded in OpenStreetMap", "tone": "neutral"})
     else:
-        items_road.append({"label": "Speed limit (fastest connecting street)", "value": f"{speed:.0f} mph", "tone": "warn" if speed >= FAST_MPH else "neutral"})
+        above = f" (above the city's {NYC_DEFAULT_MPH} mph default)" if city and speed > NYC_DEFAULT_MPH else ""
+        items_road.append({"label": "Speed limit (fastest street here)", "value": f"{speed:.0f} mph{above}",
+                           "tone": "warn" if speed > NYC_DEFAULT_MPH else "neutral",
+                           "source": "NYC DOT" if _text(row, "speed_limit_source") == "nyc_dot" else "OpenStreetMap"})
     lanes = _number(row, "max_connecting_lanes")
     items_road.append({"label": "Lanes (widest connecting street)", "value": "Not recorded" if lanes is None else f"{lanes:.0f}", "tone": "warn" if (lanes or 0) >= 4 else "neutral"})
     road_class = row.get("road_class") if hasattr(row, "get") else None
@@ -443,16 +495,31 @@ def intersection_facts(row: pd.Series, validated: bool = True) -> list[dict]:
     crossing = _number(row, "is_crossing_tagged")
     if crossing is not None:
         items_walk.append({"label": "Marked crosswalk", "value": "Mapped here" if crossing else "Not mapped here", "tone": "good" if crossing else "neutral"})
-    sidewalk = row.get("sidewalk") if hasattr(row, "get") else None
-    sidewalk_text = {
-        "yes": ("Sidewalk mapped on a connecting street", "good"),
-        "partial": ("Sidewalk on one side only", "warn"),
-        "no": ("Tagged as having no sidewalk", "warn"),
-    }.get(str(sidewalk), ("Not mapped in OpenStreetMap (can't tell)", "neutral"))
-    items_walk.append({"label": "Sidewalk", "value": sidewalk_text[0], "tone": sidewalk_text[1]})
-    bike = row.get("bike_lane") if hasattr(row, "get") else None
-    bike_text = {"yes": ("Bike lane mapped on a connecting street", "good"), "no": ("Tagged as having none", "neutral")}.get(str(bike), ("Not mapped in OpenStreetMap (can't tell)", "neutral"))
-    items_walk.append({"label": "Bike lane", "value": bike_text[0], "tone": bike_text[1]})
+    sidewalk = _text(row, "sidewalk")
+    if _text(row, "sidewalk_source") == "nyc_planimetric":
+        sides, total = _number(row, "sidewalk_sides"), _number(row, "sidewalk_sides_total")
+        if not total:
+            sidewalk_text = ("None (only highways meet here)", "warn")
+        else:
+            tone = {"yes": "good", "partial": "warn", "no": "warn"}.get(sidewalk, "neutral")
+            sidewalk_text = (f"On {sides:.0f} of {total:.0f} street sides" if sides else f"None on any of the {total:.0f} street sides", tone)
+        items_walk.append({"label": "Sidewalk", "value": sidewalk_text[0], "tone": sidewalk_text[1], "source": "NYC planimetric map"})
+    else:
+        sidewalk_text = {
+            "yes": ("Sidewalk mapped on a connecting street", "good"),
+            "partial": ("Sidewalk on one side only", "warn"),
+            "no": ("Tagged as having no sidewalk", "warn"),
+        }.get(sidewalk, ("Not mapped in OpenStreetMap (can't tell)", "neutral"))
+        items_walk.append({"label": "Sidewalk", "value": sidewalk_text[0], "tone": sidewalk_text[1]})
+    bike = _text(row, "bike_lane")
+    if _text(row, "bike_lane_source") == "nyc_dot":
+        bike_text = BIKE_LANE_TEXT.get(bike, BIKE_LANE_TEXT["none"])
+        detail = _text(row, "bike_lane_type")
+        value = bike_text[0] if detail in ("", "Protected", "Conventional", "Shared") else f"{bike_text[0]} ({detail.lower()})"
+        items_walk.append({"label": "Bike lane (best on a street here)", "value": value, "tone": bike_text[1], "source": "NYC DOT bike routes"})
+    else:
+        bike_text = {"yes": ("Bike lane mapped on a connecting street", "good"), "no": ("Tagged as having none", "neutral")}.get(bike, ("Not mapped in OpenStreetMap (can't tell)", "neutral"))
+        items_walk.append({"label": "Bike lane", "value": bike_text[0], "tone": bike_text[1]})
     lit = row.get("lit") if hasattr(row, "get") else None
     lit_text = {"yes": ("Street lighting mapped", "good"), "no": ("Tagged as unlit", "warn")}.get(str(lit), ("Not mapped in OpenStreetMap (can't tell)", "neutral"))
     items_walk.append({"label": "Street lighting", "value": lit_text[0], "tone": lit_text[1]})

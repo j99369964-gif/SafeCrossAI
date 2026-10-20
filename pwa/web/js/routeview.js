@@ -3,7 +3,7 @@ import { h, boldParts, icon, pageHeader, countUp } from "./dom.js";
 import * as api from "./api.js";
 import { mountSharedMap, onMapsAuthFailure, describeMapsError } from "./gmaps.js";
 import { createTripMap } from "./routemap.js";
-import { TIER_COLORS, TIER_NAMES, TIER_SHORT, splitStreets, tierPill, renderIntersectionDetail, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
+import { TIER_COLORS, TIER_NAMES, TIER_SHORT, splitStreets, tierPill, renderIntersectionDetail, renderIntersectionSummary, summaryMessage, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
 
 export const EXAMPLE_TRIP = { from: "Columbus Circle, New York, NY", to: "Barclays Center, Brooklyn, NY", mode: "Driving" };
 const MODES = ["Driving", "Cycling", "Walking"];
@@ -173,10 +173,30 @@ export function mountRouteView(root, ctx) {
 
   const selectedRoute = () => memory.trip.routes[memory.selected];
 
+  // One button that always names the selected route, so it's clear which option will open on the phone.
+  const mapsButton = h("a", { class: "btn btn-block maps-open", target: "_blank", rel: "noopener noreferrer" });
+  const mapsHint = h("p", { class: "muted small maps-hint" });
+  const mapsBar = h("div", { class: "maps-bar" }, mapsButton, mapsHint);
+  const PASS_VERB = { DRIVE: "drive", BICYCLE: "ride", WALK: "walk" };
+
+  function renderMapsLink() {
+    const route = selectedRoute();
+    const url = route.googleMapsUrl || memory.trip.googleMapsUrl;
+    mapsButton.href = url;
+    mapsButton.style.setProperty("--route-color", route.color);
+    mapsButton.setAttribute("aria-label", `Open ${route.label} in Google Maps (opens the Google Maps app or a new tab)`);
+    mapsButton.replaceChildren(h("span", { class: "route-swatch", "aria-hidden": "true" }), `Open ${route.label} in Google Maps`, icon("external", 18));
+    const pinned = /[?&]waypoints=/.test(url);
+    mapsHint.textContent = pinned
+      ? `Opens ${route.label} as it's drawn on the map. To keep Google on this route, the link adds a few stops along the way; just ${PASS_VERB[memory.trip.mode] || "go"} through them. Tap another card to switch routes.`
+      : `Opens ${route.label} in Google Maps. Google may suggest a slightly different way on short trips.`;
+  }
+
   function select(index) {
     if (index === memory.selected) return;
     memory.selected = index;
     updateCardSelection();
+    renderMapsLink();
     renderFilters();
     renderTop();
     renderList(true);
@@ -263,7 +283,8 @@ export function mountRouteView(root, ctx) {
         h("span", { class: "muted" }, ` · ${stop.share}% of the score · ${stop.index.toFixed(1)}× average`))))));
   }
 
-  const sidewalkText = { yes: "Sidewalk", partial: "Sidewalk on one side", no: "No sidewalk (tagged)", unknown: "Sidewalk not mapped" };
+  const sidewalkText = { yes: "Sidewalk", partial: "Sidewalk on some sides", no: "No sidewalk", unknown: "Sidewalk not mapped" };
+  const bikeText = { protected: "Protected bike lane", lane: "Bike lane", shared: "Shared bike route", none: "No bike lane", yes: "Bike lane" };
   const MAX_ROWS = 150;
 
   // `animate` staggers the rows in. Selecting a row doesn't rebuild the list (see markSelectedStop).
@@ -289,6 +310,7 @@ export function mountRouteView(root, ctx) {
           stop.speed === null ? null : h("span", { class: "mini-chip" }, `${stop.speed} mph`),
           stop.signal === null ? null : h("span", { class: "mini-chip" }, stop.signal ? "Signal" : "No signal mapped"),
           h("span", { class: "mini-chip" }, sidewalkText[stop.sidewalk] || sidewalkText.unknown),
+          memory.trip.mode === "BICYCLE" && bikeText[stop.bike] ? h("span", { class: "mini-chip" }, bikeText[stop.bike]) : null,
           stop.unvalidated ? h("span", { class: "mini-chip warn" }, "Unvalidated") : null,
         ];
         const selected = memory.node === stop.id;
@@ -319,10 +341,52 @@ export function mountRouteView(root, ctx) {
     markSelectedStop();
   }
 
+  // "8% of Route A's risk score · mile 2.3", or which routes pass it when it isn't on the selected one.
+  function stopContext(id) {
+    const route = selectedRoute();
+    const stop = route.stops.find((item) => item.id === id);
+    if (stop) return `${stop.share}% of ${route.label}'s risk score · mile ${stop.miles.toFixed(1)}`;
+    const dot = memory.trip.map.dots.find((item) => item.id === id);
+    return dot && dot.routes.length ? `On ${dot.routes.join(" and ")}` : null;
+  }
+
+  function stopLabel(id) {
+    for (const route of memory.trip.routes) {
+      const stop = route.stops.find((item) => item.id === id);
+      if (stop) return stop.label;
+    }
+    return "Intersection";
+  }
+
+  // Tapping a dot shows the intersection in a popup on the map itself; "All details" opens the full panel.
+  async function showOnMap(id) {
+    if (!tripMap) { openNode(id, false); return; }
+    memory.node = id;
+    const mine = ++detailToken;
+    hideSheet(sheetHost);
+    tripMap.selectNode(id);
+    markSelectedStop();
+    tripMap.showNodeInfo(id, summaryMessage(stopLabel(id), "Loading details..."));
+    try {
+      const detail = await api.getIntersection(id);
+      if (destroyed || mine !== detailToken || !tripMap) return;
+      tripMap.showNodeInfo(id, renderIntersectionSummary(detail, { extra: stopContext(id), onMore: () => openNode(id, false) }));
+    } catch (problem) {
+      if (!destroyed && mine === detailToken && tripMap) tripMap.showNodeInfo(id, summaryMessage(stopLabel(id), problem.message));
+    }
+  }
+
+  function onPopupClosed(id) {
+    if (memory.node !== id || sheetHost.querySelector(".sheet:not(.is-leaving)")) return;
+    memory.node = null;
+    if (tripMap) tripMap.selectNode(null);
+    markSelectedStop();
+  }
+
   async function openNode(id, pan) {
     memory.node = id;
     const mine = ++detailToken;
-    if (tripMap) { tripMap.selectNode(id); if (pan) tripMap.focusNode(id); }
+    if (tripMap) { tripMap.closeNodeInfo(); tripMap.selectNode(id); if (pan) tripMap.focusNode(id); }
     markSelectedStop();
     showSheet(sheetHost, loadingBody());
     try {
@@ -364,27 +428,27 @@ export function mountRouteView(root, ctx) {
       const who = trip.mode === "WALK" ? "pedestrian" : "cyclist";
       pieces.push(h("div", { class: "banner banner-info" }, `For this travel mode, intersections count a little more where the speed limit is high or a ${who} was hurt in the last eight weeks.`));
     }
-    pieces.push(h("p", { class: "headline" }, boldParts(trip.headline)), cardsEl, mapMessage, mapHolder,
+    pieces.push(h("p", { class: "headline" }, boldParts(trip.headline)), cardsEl, mapsBar, mapMessage, mapHolder,
       h("div", { class: "legend" },
         TIER_NAMES.map((name, code) => h("span", {}, h("span", { class: "dot", style: `background:${TIER_COLORS[code]}` }), name)),
-        h("span", {}, "Tap a route line or a card to focus it.")),
+        h("span", {}, "Tap a dot for that intersection's details, or a route line or card to select the route.")),
       topEl, filtersEl, listEl, sheetHost,
-      h("div", { class: "btn-row" }, h("a", { class: "btn btn-ghost", href: trip.googleMapsUrl, target: "_blank", rel: "noopener noreferrer" }, "Open this trip in Google Maps", icon("external", 18))),
       h("details", {}, h("summary", {}, "How is the risk score worked out?"),
         h("ul", {},
           h("li", {}, "Google's route line is matched against every scored intersection. An intersection counts as passed if it is within about 25 metres of the line, and counts more the closer the line runs to its centre."),
-          h("li", {}, "Each intersection gets a relative risk: the model's prediction divided by the average for its area, so 1.0 is an average intersection and 3.0 is three times the average. The model already weighs the intersection's recent and long-run crash history, crashes at nearby intersections, its speed limit, lanes, signal, crossings and one-way streets."),
-          h("li", {}, "The route score adds up the relative risk of every intersection passed, not just the worst ones, so a long route through many average intersections can outscore a short route past one bad one. Lower is safer. Hot spots are intersections at least 3 times the average."),
+          h("li", {}, "Each intersection gets a relative risk: the model's prediction divided by the average for the intersections around it (about the surrounding kilometre), so 1.0 is typical for its neighbourhood and 3.0 is three times that. The model already weighs the intersection's recent and long-run crash history, crashes at nearby intersections, its speed limit, lanes, signal, crossings and one-way streets."),
+          h("li", {}, "The route score adds up the relative risk of every intersection passed, not just the worst ones, so a long route through many average intersections can outscore a short route past one bad one. Lower is safer. Hot spots are intersections at least 3 times their neighbourhood's average."),
           h("li", {}, "Walking and cycling count intersections a little more where traffic is fast (26 mph and up, more at 35 mph and up) or where someone on foot or on a bike was hurt in the last eight weeks. These adjustments are judgement calls, not fitted to data."),
           h("li", {}, "Scores compare options for the same trip. They are not chances of a crash, and the model scores intersections only, so risk between intersections is not counted."),
           h("li", {}, "Large intersections can be counted more than once, and routes on bridges or highways can pick up streets they cross over or under."),
           h("li", {}, `Risk uses a recent weekly snapshot${trip.snapshotWeek ? ` (week of ${trip.snapshotWeek})` : ""}, not live conditions.`),
-          h("li", {}, "Sidewalk, bike-lane and lighting facts come from OpenStreetMap volunteers. 'Not mapped' means nobody has recorded it, not that it is missing."),
+          h("li", {}, "In New York City, speed limits and bike lanes come from NYC DOT and sidewalks from the city's planimetric map. Street lighting, and everything in Westchester, comes from OpenStreetMap volunteers: 'not mapped' there means nobody has recorded it, not that it is missing."),
           h("li", {}, "Westchester County is an unvalidated estimate: the model was trained on New York City crashes and applied there to the road layout only."))),
       h("p", { class: "muted small" }, "Route options, travel times and the map are provided by Google Maps Platform. Risk rankings are from the SafeCross AI model. See About for terms and privacy."));
     pieces.forEach((piece, i) => piece.style.setProperty("--i", String(Math.min(i, 10))));
     resultsEl.replaceChildren(...pieces);
     renderCards();
+    renderMapsLink();
     renderFilters();
     renderTop();
     renderList(true);
@@ -393,7 +457,7 @@ export function mountRouteView(root, ctx) {
     unsubscribeAuth = onMapsAuthFailure((message) => mapMessage.replaceChildren(h("div", { class: "banner banner-error", role: "alert" }, message)));
     mountSharedMap(config.mapsJsKey, mapHolder).then(({ maps, map }) => {
       if (destroyed || memory.trip !== trip) return;
-      tripMap = createTripMap({ maps, map, trip, onSelectRoute: select, onSelectNode: (id) => openNode(id, false) });
+      tripMap = createTripMap({ maps, map, trip, onSelectRoute: select, onSelectNode: showOnMap, onInfoClosed: onPopupClosed });
       tripMap.setTiers(memory.tiers);
       tripMap.highlight(memory.selected);
       if (memory.node) tripMap.selectNode(memory.node);

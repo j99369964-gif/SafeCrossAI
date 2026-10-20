@@ -21,9 +21,10 @@ export const STEPS = [
     title: "What does \"high-risk\" mean?",
     body: () => [
       h("p", {}, "Every intersection gets a relative risk tier from a model trained on New York City's crash history, the layout of the roads and recent crash activity nearby."),
+      h("p", {}, "Each intersection is ranked against the intersections around it (roughly the surrounding kilometre), so every neighbourhood has its own riskiest spots."),
       h("ul", {},
-        h("li", {}, "Highest-priority (top 10%): among the riskiest tenth of intersections. These are the ones we count."),
-        h("li", {}, "Elevated: the next tier down (roughly the top 25% overall).")),
+        h("li", {}, "Highest-priority (top 10%): among the riskiest tenth of nearby intersections. These are the ones we count."),
+        h("li", {}, "Elevated: the next tier down (roughly the top 25% of nearby intersections).")),
       h("div", { class: "banner banner-info" }, "These are rankings, not forecasts. A route with fewer flagged intersections is not guaranteed to be safe."),
     ],
   },

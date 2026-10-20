@@ -41,7 +41,9 @@ const query = (params) =>
 
 export const getConfig = () => request("/api/config");
 export const findRoutes = (body) => request("/api/routes", { method: "POST", body });
+export const exploreSummary = () => request("/api/explore/summary");
 export const exploreGrid = (filters) => request(`/api/explore/grid?${query(filters)}`);
 export const explorePoints = (params) => request(`/api/explore/points?${query(params)}`);
 export const getIntersection = (id) => request(`/api/intersections/${encodeURIComponent(id)}`);
 export const getModelInfo = () => request("/api/model");
+export const historyCells = (period) => request(`/api/history/cells?${query(period)}`);

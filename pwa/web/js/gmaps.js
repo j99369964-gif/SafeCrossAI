@@ -87,6 +87,13 @@ export async function mountSharedMap(key, container, options = {}) {
       styles: mapIsDark() ? DARK_STYLE : LIGHT_STYLE,
       backgroundColor: mapIsDark() ? "#1a1c1f" : "#f1eee6",
     });
+    // The frosted top bar and bottom nav would re-blur the map under them on every frame of a pan or zoom; keep
+    // them solid while the map moves (see .map-moving in styles.css).
+    const root = document.documentElement;
+    const moving = () => root.classList.add("map-moving");
+    sharedMap.addListener("dragstart", moving);
+    sharedMap.addListener("zoom_changed", moving);
+    sharedMap.addListener("idle", () => root.classList.remove("map-moving"));
     if (darkQuery && darkQuery.addEventListener) {
       darkQuery.addEventListener("change", () => sharedMap.setOptions({ styles: mapIsDark() ? DARK_STYLE : LIGHT_STYLE }));
     }
@@ -95,12 +102,6 @@ export async function mountSharedMap(key, container, options = {}) {
   }
   return { maps, map: sharedMap };
 }
-
-export const metersForPixels = (map, pixels) => {
-  // Metres covered by `pixels` screen pixels at the current zoom and latitude, so dots keep a constant on-screen size.
-  const latitude = map.getCenter().lat();
-  return (pixels * 156543.03392 * Math.cos((latitude * Math.PI) / 180)) / Math.pow(2, map.getZoom());
-};
 
 export function describeMapsError(error) {
   return error && error.message ? error.message : "The map couldn't be loaded.";

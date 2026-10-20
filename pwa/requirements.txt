@@ -8,6 +8,7 @@ pandas
 scipy
 scikit-learn
 joblib
+pyarrow      # reads the pre-aggregated crash history (data/processed/*.parquet)
 requests
 
 # The saved model needs its library at load time. Notebook 2 picks XGBoost or LightGBM (they score within

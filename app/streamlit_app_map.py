@@ -219,7 +219,7 @@ with explore_tab:
         # The grid is colored by the average WITHIN-AREA risk percentile, not the raw probability, so cells in
         # different areas are on the same 0-1 scale (raw probabilities from different areas are not comparable).
         grid_input = filtered_rows[["latitude", "longitude", "risk_tier"]].assign(
-            predicted_probability=filtered_rows["risk_percentile"] / 100.0
+            predicted_probability=filtered_rows["region_percentile"] / 100.0
         )
         risk_grid = cached_risk_grid(grid_input)
         probabilities = [feature["properties"]["mean_probability"] for feature in risk_grid["features"]]

@@ -16,6 +16,8 @@ COPY pwa/server /srv/pwa/server
 COPY pwa/web /srv/pwa/web
 COPY models /srv/models
 COPY data/sample /srv/data/sample
+# Observed crash history for the 3D map (scripts/build_historical_density.py). Optional: without it the toggle is hidden.
+COPY data/processed/historical_spatial_monthly.parquet data/processed/historical_cells.parquet /srv/data/processed/
 COPY reports /srv/reports
 
 # One worker: the rate limiter keeps its counts in memory. For several workers, move it to a shared store (e.g. Redis).

@@ -150,12 +150,13 @@ class SafeCrossData:
         }
 
     def grid(self, areas=None, tiers=None) -> dict:
-        """Area-level overview as GeoJSON, colored by the average WITHIN-AREA percentile (0-1)."""
+        """Area-level overview as GeoJSON, colored by the average REGION-WIDE percentile (0-1), so it shows where
+        risk concentrates; the tiers and dots rank each intersection against its neighbourhood instead."""
         key = (tuple(sorted(areas)) if areas is not None else None, tuple(sorted(tiers)) if tiers is not None else None)
         if key in self._grid_cache:
             return self._grid_cache[key]
         rows = self.frame.loc[self._masks(areas, tiers)]
-        grid_input = rows[["latitude", "longitude", "risk_tier"]].assign(predicted_probability=rows["risk_percentile"] / 100.0)
+        grid_input = rows[["latitude", "longitude", "risk_tier"]].assign(predicted_probability=rows["region_percentile"] / 100.0)
         result = core.build_risk_grid(grid_input, target_bins=GRID_BINS)
         if len(self._grid_cache) > 64:
             self._grid_cache.clear()
