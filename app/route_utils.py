@@ -569,17 +569,67 @@ def fetch_routes(
     return routes, notices
 
 
-def google_maps_directions_url(origin: str, destination: str, travel_mode: str) -> str:
-    """A plain Google Maps link (no API key) that opens the trip in the Google Maps app/site."""
-    query = urllib.parse.urlencode(
-        {
-            "api": 1,
-            "origin": with_city_bias(origin),
-            "destination": with_city_bias(destination),
-            "travelmode": MAPS_URL_MODES.get(travel_mode, "driving"),
-        }
-    )
-    return f"https://www.google.com/maps/dir/?{query}"
+def google_maps_directions_url(
+    origin: str, destination: str, travel_mode: str, waypoints: list[tuple[float, float]] | None = None
+) -> str:
+    """A plain Google Maps link (no API key) that opens the trip in the Google Maps app/site. `waypoints`
+    (lat, lng) pin the link to one particular route (see route_waypoints)."""
+    params = {
+        "api": 1,
+        "origin": with_city_bias(origin),
+        "destination": with_city_bias(destination),
+        "travelmode": MAPS_URL_MODES.get(travel_mode, "driving"),
+    }
+    if waypoints:
+        params["waypoints"] = "|".join(f"{lat:.6f},{lng:.6f}" for lat, lng in waypoints)
+    return f"https://www.google.com/maps/dir/?{urllib.parse.urlencode(params)}"
+
+
+# Google Maps URLs accept at most 3 waypoints on mobile browsers (9 elsewhere), and the link is meant for phones.
+WAYPOINT_COUNT = 3
+WAYPOINT_SPACING_M = 20.0
+WAYPOINT_MIN_DEVIATION_M = 40.0  # a point this far from every other option is where this route "goes its own way"
+WAYPOINT_CLEARANCE_M = 30.0  # keep waypoints off intersections, where Google could snap them onto the cross street
+WAYPOINT_MIN_ROUTE_M = 400.0
+
+
+def route_waypoints(routes: list[Route], position: int, index: IntersectionIndex, count: int = WAYPOINT_COUNT) -> list[tuple[float, float]]:
+    """Up to `count` points on route `position` that make Google Maps follow that route rather than its own pick.
+
+    The middle 80% of the route is split into `count` equal sections. In each, the waypoint is the point farthest
+    from every other route option, if it strays at least WAYPOINT_MIN_DEVIATION_M from them, else the section's
+    midpoint. Points within WAYPOINT_CLEARANCE_M of an intersection are avoided when the section has others."""
+    route = routes[position]
+    if len(route.points) < 2:
+        return []
+    xy = index.project(route.points[:, 0], route.points[:, 1])
+    dense, along = densify(xy, WAYPOINT_SPACING_M)
+    total = float(along[-1])
+    if total < WAYPOINT_MIN_ROUTE_M:
+        return []
+    vertex_along = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(xy, axis=0).T))])
+    latitude = np.interp(along, vertex_along, route.points[:, 0])
+    longitude = np.interp(along, vertex_along, route.points[:, 1])
+
+    others = [densify(index.project(other.points[:, 0], other.points[:, 1]), WAYPOINT_SPACING_M)[0]
+              for i, other in enumerate(routes) if i != position and len(other.points) >= 2]
+    deviation = cKDTree(np.vstack(others)).query(dense)[0] if others else np.zeros(len(dense))
+    clearance = index.tree.query(dense)[0]
+
+    waypoints = []
+    edges = np.linspace(0.1 * total, 0.9 * total, count + 1)
+    for low, high in zip(edges[:-1], edges[1:]):
+        section = (along >= low) & (along < high)
+        clear = section & (clearance >= WAYPOINT_CLEARANCE_M)
+        candidates = np.flatnonzero(clear if clear.any() else section)
+        if not len(candidates):
+            continue
+        if deviation[candidates].max() >= WAYPOINT_MIN_DEVIATION_M:
+            pick = candidates[np.argmax(deviation[candidates])]
+        else:
+            pick = candidates[np.argmin(np.abs(along[candidates] - (low + high) / 2))]
+        waypoints.append((float(latitude[pick]), float(longitude[pick])))
+    return waypoints
 
 
 # =============================================================================

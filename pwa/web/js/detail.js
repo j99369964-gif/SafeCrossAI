@@ -42,7 +42,8 @@ function factGroup(group) {
     h("h4", {}, group.title),
     h("dl", { class: "facts" }, group.items.map((item) => h("div", { class: `fact tone-${item.tone}` },
       h("dt", {}, item.label),
-      h("dd", {}, h("span", { class: "tone-dot", "aria-hidden": "true" }), item.value)))));
+      h("dd", {}, h("span", { class: "tone-dot", "aria-hidden": "true" }), h("span", {}, item.value,
+        item.source ? h("span", { class: "fact-source" }, item.source) : null))))));
 }
 
 /** The full panel body for one intersection, from /api/intersections/<id>. */
@@ -64,6 +65,35 @@ export function renderIntersectionDetail(detail, { onClose } = {}) {
       h("ul", { class: "plain" }, detail.measures.map((measure) => h("li", {}, measure))),
       h("p", { class: "muted small" }, "Rule-based suggestions for further review, not model output and not a recommendation.")));
 }
+
+// The facts the route map's popup shows, by the start of their label in /api/intersections/<id>.
+const SUMMARY_FACTS = [["Speed limit", "Speed limit"], ["Traffic control", "Control"], ["Marked crosswalk", "Crosswalk"],
+  ["Sidewalk", "Sidewalk"], ["Bike lane", "Bike lane"], ["Crashes, last 52 weeks", "Crashes, past year"]];
+
+/**
+ * A compact card for the popup on the route map: name, risk level, the key street facts, and `extra` (for example
+ * the intersection's share of the route's score). `onMore` opens the full details panel.
+ */
+export function renderIntersectionSummary(detail, { extra, onMore } = {}) {
+  const facts = (detail.facts || []).flatMap((group) => group.items);
+  const rows = SUMMARY_FACTS.map(([prefix, label]) => {
+    const fact = facts.find((item) => item.label.startsWith(prefix));
+    return fact ? h("div", { class: `fact tone-${fact.tone}` }, h("dt", {}, label),
+      h("dd", {}, h("span", { class: "tone-dot", "aria-hidden": "true" }), fact.value)) : null;
+  }).filter(Boolean);
+  const index = riskIndexText(detail);
+  return h("div", { class: "map-popup", role: "dialog", "aria-label": `Intersection: ${detail.label}` },
+    streetTitle(detail.label, "h3"),
+    h("div", { class: "detail-risk" }, tierPill(detail.tierCode),
+      h("span", {}, `${ordinal(detail.percentile)} percentile nearby${detail.validated ? "" : " (unvalidated)"}`)),
+    index ? h("p", { class: "popup-index" }, index) : null,
+    extra ? h("p", { class: "popup-extra" }, extra) : null,
+    rows.length ? h("dl", { class: "facts" }, rows) : null,
+    onMore ? h("button", { type: "button", class: "btn btn-small popup-more", onclick: onMore }, "All details", icon("arrow", 16)) : null);
+}
+
+/** What the popup shows while the details load, or if they can't. */
+export const summaryMessage = (label, message) => h("div", { class: "map-popup" }, streetTitle(label, "h3"), h("p", { class: "popup-extra" }, message));
 
 /** Loading and error bodies so callers do not repeat them. */
 export const loadingBody = () => h("div", { class: "detail", "aria-busy": "true" },

@@ -1,7 +1,7 @@
 // Draws a route result on the shared Google Map: one line per route, start/end markers, and a dot for every
 // intersection the routes pass, coloured by risk tier exactly like the Explore map. Dots and markers are drawn on one
 // canvas (see canvaslayer.js) so the map stays smooth with hundreds of them. Clicking a dot (or a route line) is
-// reported to the caller, which shows the details panel.
+// reported to the caller, which shows the intersection's details in a popup on the map (showNodeInfo).
 import { h, reducedMotion } from "./dom.js";
 import { mapIsDark } from "./gmaps.js";
 import { TIER_COLORS } from "./detail.js";
@@ -9,9 +9,9 @@ import { createCanvasLayer } from "./canvaslayer.js";
 
 const DOT_PIXELS = [7, 6, 5, 5];
 
-export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) {
+export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode, onInfoClosed }) {
   const data = trip.map;
-  const info = new maps.InfoWindow();
+  const info = new maps.InfoWindow({ maxWidth: 320 });
   const bounds = new maps.LatLngBounds();
   const lines = [];
   const casings = [];
@@ -20,12 +20,19 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
   let highlighted = -1;
   let visibleTiers = new Set([0, 1]);
   let selectedId = null;
+  let infoNodeId = null; // the intersection whose popup is open, if any
 
   const openInfo = (position, text) => {
+    infoNodeId = null;
     info.setContent(h("div", { style: "font-size:13px;font-weight:bold;color:#1b1f24" }, text));
     info.setPosition(position);
     info.open(map);
   };
+  listeners.push(info.addListener("closeclick", () => {
+    const closed = infoNodeId;
+    infoNodeId = null;
+    if (closed !== null && onInfoClosed) onInfoClosed(closed);
+  }));
 
   // Each route is a coloured line on a slightly wider casing in the map's background colour, so overlapping routes and
   // busy streets don't swallow it.
@@ -64,7 +71,7 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
 
   function handleHit(hit) {
     if (hit.data.endpoint) openInfo(hit.data.position, hit.data.endpoint);
-    else { info.close(); if (onSelectNode) onSelectNode(hit.data.id); }
+    else if (onSelectNode) onSelectNode(hit.data.id);
   }
   const layer = createCanvasLayer(maps, map, { onClick: handleHit });
 
@@ -87,6 +94,8 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
       });
     });
     layer.setDots([...shown, ...endpoints]);
+    // A popup for an intersection that is no longer drawn (filtered out, or not on the focused route) closes.
+    if (infoNodeId !== null && !shown.some((dot) => dot.data.id === infoNodeId)) closeNodeInfo();
   }
 
   function highlight(index) {
@@ -115,6 +124,23 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
     refreshDots();
   }
 
+  /** Opens (or refreshes) the popup above one intersection's dot. `content` is a DOM node. */
+  function showNodeInfo(id, content) {
+    const dot = dots.get(id);
+    if (!dot) return;
+    infoNodeId = id;
+    info.setContent(content);
+    info.setPosition({ lat: dot.lat, lng: dot.lng });
+    info.setOptions({ pixelOffset: new maps.Size(0, -(DOT_PIXELS[dot.tier] || 5)) });
+    info.open({ map, shouldFocus: false });
+  }
+
+  function closeNodeInfo() {
+    if (infoNodeId === null) return;
+    infoNodeId = null;
+    info.close();
+  }
+
   /** Centre the map on one intersection and zoom in far enough to see the street around it. */
   function focusNode(id) {
     const dot = dots.get(id);
@@ -138,5 +164,5 @@ export function createTripMap({ maps, map, trip, onSelectRoute, onSelectNode }) 
   fit();
   refreshDots();
   drawIn();
-  return { highlight, setTiers, selectNode, focusNode, fit, destroy };
+  return { highlight, setTiers, selectNode, focusNode, showNodeInfo, closeNodeInfo, fit, destroy };
 }

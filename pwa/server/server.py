@@ -50,6 +50,7 @@ from route_utils import (  # noqa: E402
     format_distance,
     format_duration,
     google_maps_directions_url,
+    route_waypoints,
 )
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -129,6 +130,11 @@ def _optional(value, cast):
     return None if number != number else cast(number)
 
 
+def _label(value) -> str:
+    """A category such as 'yes' or 'protected'; missing values become 'unknown'."""
+    return value if isinstance(value, str) and value else "unknown"
+
+
 def route_stops(risk) -> list[dict]:
     """Every intersection a route passes, in the order it is passed, with what the table and the map need."""
     tier_code = {name: code for code, name in enumerate(TIER_ORDER)}
@@ -151,7 +157,8 @@ def route_stops(risk) -> list[dict]:
                 "speed": _optional(getattr(row, "max_connecting_speed_limit", None), int),
                 "signal": True if getattr(row, "node_control", None) == "traffic_signals" else _optional(getattr(row, "is_traffic_signal", None), lambda v: bool(v)),
                 "crossing": _optional(getattr(row, "is_crossing_tagged", None), lambda v: bool(v)),
-                "sidewalk": str(getattr(row, "sidewalk", "unknown") or "unknown"),
+                "sidewalk": _label(getattr(row, "sidewalk", None)),
+                "bike": _label(getattr(row, "bike_lane", None)),
             }
         )
     return stops
@@ -188,6 +195,8 @@ def serialize_trip(routes, risks, comparison, notices, index, origin, destinatio
                 "deltaMinutes": None if is_fastest else int(round((route.duration_s - fastest.duration_s) / 60)),
                 "deltaHigh": None if is_fastest or risk.n_high == fastest_risk.n_high else int(risk.n_high - fastest_risk.n_high),
                 "stops": route_stops(risk),
+                # Opens this exact route (not Google's own pick) in the Google Maps app.
+                "googleMapsUrl": google_maps_directions_url(origin, destination, mode_code, route_waypoints(routes, position, index)),
             }
         )
     return {
