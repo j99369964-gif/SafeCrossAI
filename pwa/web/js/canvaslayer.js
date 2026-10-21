@@ -5,6 +5,7 @@
 //
 // Dots:  { lat, lng, r (px), fill, alpha, stroke, strokeAlpha, strokeWidth, z, data }  (higher z is drawn on top)
 // Rects: { south, west, north, east, fill, alpha, stroke, strokeWidth, data }
+// Lines: { points: [[lat, lng], ...], color, width (px), alpha }  (drawn above rects, below dots; not clickable)
 const TILE = 256;
 const worldX = (lng) => ((lng + 180) / 360) * TILE;
 const worldY = (lat) => {
@@ -19,6 +20,7 @@ export function createCanvasLayer(maps, map, { onClick } = {}) {
   const ctx = canvas.getContext("2d");
   let dots = [];
   let rects = [];
+  let lines = [];
   let frame = 0;
   let view = null; // what the canvas currently covers: { left, top, width, height, zoom }
   let hovering = false;
@@ -80,6 +82,20 @@ export function createCanvasLayer(maps, map, { onClick } = {}) {
         ctx.strokeStyle = rect.stroke;
         ctx.strokeRect(x, y, w, h);
       }
+    }
+
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    for (const line of lines) {
+      ctx.beginPath();
+      line.xy.forEach(([wx, wy], i) => {
+        const x = wx * ref.scale + offsetX, y = wy * ref.scale + offsetY;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.globalAlpha = line.alpha;
+      ctx.lineWidth = line.width;
+      ctx.strokeStyle = line.color;
+      ctx.stroke();
     }
 
     for (const dot of dots) {
@@ -161,6 +177,12 @@ export function createCanvasLayer(maps, map, { onClick } = {}) {
       rects = items.map((item) => ({
         strokeWidth: 0, alpha: 1, ...item,
         x0: worldX(item.west), x1: worldX(item.east), y0: worldY(item.north), y1: worldY(item.south),
+      }));
+      schedule();
+    },
+    setLines(items) {
+      lines = items.map((item) => ({
+        alpha: 1, width: 3, color: "#000000", ...item, xy: item.points.map(([lat, lng]) => [worldX(lng), worldY(lat)]),
       }));
       schedule();
     },

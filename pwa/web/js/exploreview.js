@@ -8,7 +8,9 @@ import * as api from "./api.js";
 import { mountSharedMap, onMapsAuthFailure, describeMapsError } from "./gmaps.js";
 import { createCanvasLayer } from "./canvaslayer.js";
 import { METRICS, RAMP_CSS, mountHistoryMap } from "./history3d.js";
-import { TIER_COLORS, TIER_NAMES, renderIntersectionDetail, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
+import { TIER_COLORS, TIER_NAMES, TIER_SHORT, ordinal, renderIntersectionDetail, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
+import { createSearchBox, streetSubtitle } from "./searchbox.js";
+import { getReport } from "./reports.js";
 
 export const ZOOM_SWITCH = 14;
 
@@ -23,6 +25,9 @@ const FINE_CELL = 0.005;
 // 3D view: SafeCross rings only appear at neighbourhood zoom; at city scale they would overplot just like crash dots.
 const RING_ZOOM = 13.5;
 const DEBOUNCE_MS = 250;
+const FOCUS_ZOOM = 17;
+const HIGHLIGHT_INK = "#17191b";
+const HIGHLIGHT_LINE = "#f5b301";
 
 // Filters survive moving between tabs.
 const memory = { areas: null, tiers: new Set([0, 1, 2, 3]), view: "risk", metric: "all", period: null, rings: true };
@@ -63,6 +68,10 @@ export function mountExploreView(root, ctx) {
   let selectedId = null;
   const listeners = [];
   let points = []; // intersections in view: { id, lat, lng, tier, unvalidated }
+  // What the search picked: { kind: "street", street } (from /api/street) or { kind: "intersection", point }.
+  let highlight = null;
+  let pendingPick = null; // a pick made before the map finished loading
+  let streetToken = 0;
   let unsubscribeAuth = () => {};
 
   const filterParams = () => ({ areas: [...memory.areas].join(","), tiers: [...memory.tiers].sort().join(",") });
@@ -95,7 +104,18 @@ export function mountExploreView(root, ctx) {
   }
   renderFilters();
 
+  // ------------------------------------------------------------------ search
+  const highlightEl = h("div", { class: "highlight-panel", role: "status", "aria-live": "polite" });
+  const searchBox = createSearchBox({
+    label: "Find a street or intersection",
+    placeholder: "e.g. Broadway, or Broadway & W 42nd St",
+    hint: "A street name highlights the whole street. Two streets with \"&\" between them open that intersection.",
+    onPick: (result) => (result.type === "street" ? pickStreet(result) : pickIntersection(result)),
+  });
+  const searchCard = h("div", { class: "card search-card" }, searchBox.element, highlightEl);
+
   const riskSection = h("div", { class: "explore-mode" },
+    searchCard,
     h("div", { class: "card filter-card" }, h("h2", {}, "Areas"), areaChips, h("h2", {}, "Risk levels"), tierChips),
     banner, summary, mapMessage, mapHolder,
     h("div", { class: "legend" }, TIER_NAMES.map((name, code) => h("span", {}, h("span", { class: "dot", style: `background:${TIER_COLORS[code]}` }), name))));
@@ -109,14 +129,14 @@ export function mountExploreView(root, ctx) {
     ? h("div", { class: "segmented segmented-2 view-toggle", role: "radiogroup", "aria-label": "Map view" },
       viewOption("risk", "SafeCross risk"), viewOption("history", "3D crash history"))
     : null;
-  page.append(viewToggle, riskSection, historySection, sheetHost);
+  page.append(...[viewToggle, riskSection, historySection, sheetHost].filter(Boolean)); // append(null) would print "null"
 
   // ------------------------------------------------------------------ map layers
   const sizeFor = (code) => (code === 0 ? 7 : 6);
 
   function clearPoints() {
     points = [];
-    if (layer) layer.setDots([]);
+    drawPoints();
   }
   function clearGrid() {
     if (layer) layer.setRects([]);
@@ -153,9 +173,29 @@ export function mountExploreView(root, ctx) {
     summary.textContent = cells ? "Area view: darker squares are areas with higher average risk across the whole region. Zoom in for individual intersections, which are ranked against their own neighbourhood." : "Nothing matches these filters.";
   }
 
+  // The searched street (or intersection) is drawn on top of everything else, in every tier and at every zoom.
+  function highlightDots() {
+    if (!highlight) return [];
+    const zoom = map ? map.getZoom() : 0;
+    // Street dots sit inside the highlighted band (narrower than it), so the street reads as one line at any zoom.
+    const streetRadius = zoom >= 16 ? 5.5 : 3.2;
+    const list = highlight.kind === "street" ? highlight.street.points : [highlight.point];
+    return list.map((point) => {
+      const isSelected = point.id === selectedId;
+      return {
+        lat: point.lat, lng: point.lng, r: highlight.kind === "intersection" ? 9 : streetRadius, z: isSelected ? 60 : 40 - point.tier,
+        fill: TIER_COLORS[point.tier], alpha: point.unvalidated ? 0.55 : 1, stroke: HIGHLIGHT_INK, strokeAlpha: 1,
+        strokeWidth: isSelected || highlight.kind === "intersection" ? 3 : zoom >= 16 ? 1.5 : 0.8, data: point,
+      };
+    });
+  }
+
   function drawPoints() {
     if (!layer) return;
-    layer.setDots(points.map((point) => {
+    // The highlighted street's own dots are drawn by highlightDots(), smaller, so the band underneath stays visible.
+    const onStreet = highlight && highlight.kind === "street" ? new Set(highlight.street.points.map((point) => point.id)) : null;
+    const base = onStreet ? points.filter((point) => !onStreet.has(point.id)) : points;
+    layer.setDots([...base.map((point) => {
       const unvalidated = point.unvalidated === 1;
       const isSelected = point.id === selectedId;
       return {
@@ -164,7 +204,74 @@ export function mountExploreView(root, ctx) {
         stroke: isSelected ? "#000000" : unvalidated ? TIER_COLORS[point.tier] : "#ffffff",
         strokeAlpha: unvalidated ? 0.7 : 1, strokeWidth: isSelected ? 3 : 1, data: point,
       };
-    }));
+    }), ...highlightDots()]);
+  }
+
+  function drawHighlightLines() {
+    if (!layer) return;
+    const segments = highlight && highlight.kind === "street" ? highlight.street.segments : [];
+    // A dark casing under a bright line keeps the street readable over both the pale and the red area squares.
+    layer.setLines([
+      ...segments.map((points) => ({ points, color: HIGHLIGHT_INK, width: 14, alpha: 0.45 })),
+      ...segments.map((points) => ({ points, color: HIGHLIGHT_LINE, width: 10, alpha: 1 })),
+    ]);
+  }
+
+  function clearHighlight() {
+    streetToken++;
+    highlight = null;
+    highlightEl.replaceChildren();
+    drawHighlightLines();
+    drawPoints();
+  }
+
+  function renderStreetPanel(street) {
+    const tierChips = street.tierCounts.map((count, code) => (count ? h("span", { class: "mini-chip" },
+      h("span", { class: "dot", style: `background:${TIER_COLORS[code]}`, "aria-hidden": "true" }), `${count} ${TIER_SHORT[code].toLowerCase()}`) : null));
+    highlightEl.replaceChildren(h("div", { class: "highlight-card" },
+      h("div", { class: "highlight-head" },
+        h("div", {}, h("h3", {}, street.name), h("p", { class: "muted small" }, streetSubtitle(street))),
+        h("button", { type: "button", class: "btn btn-small btn-ghost", onclick: () => { searchBox.clear(); clearHighlight(); } }, "Clear")),
+      h("div", { class: "stop-chips" }, tierChips),
+      street.riskiest.length ? h("details", { class: "highlight-more" }, h("summary", {}, `Highest-risk intersections on ${street.name}`),
+        h("ol", { class: "top3" }, street.riskiest.map((point) => h("li", {},
+          h("button", { type: "button", class: "link-button", onclick: () => pickIntersection(point, { keepStreet: true }) }, point.label),
+          h("span", { class: "muted" }, `${TIER_SHORT[point.tier]} · ${ordinal(point.pct)} percentile nearby`))))) : null));
+  }
+
+  async function pickStreet(result) {
+    if (!map) { pendingPick = () => pickStreet(result); return; }
+    const mine = ++streetToken;
+    selectedId = null;
+    hideSheet(sheetHost);
+    highlightEl.replaceChildren(h("p", { class: "muted" }, h("span", { class: "spinner", "aria-hidden": "true" }), `Finding ${result.name}...`));
+    try {
+      const street = await api.getStreet(result.key, result.part);
+      if (mine !== streetToken || destroyed) return;
+      highlight = { kind: "street", street };
+      renderStreetPanel(street);
+      drawHighlightLines();
+      drawPoints();
+      const b = street.bounds;
+      const pad = 0.0015; // a single-block street would otherwise zoom in to the building level
+      map.fitBounds({ south: b.south - pad, north: b.north + pad, west: b.west - pad, east: b.east + pad }, 48);
+    } catch (problem) {
+      if (mine === streetToken && !destroyed) highlightEl.replaceChildren(h("div", { class: "banner banner-error" }, problem.message));
+    }
+  }
+
+  function pickIntersection(result, { keepStreet = false } = {}) {
+    if (!map) { pendingPick = () => pickIntersection(result, { keepStreet }); return; }
+    const point = { id: String(result.id), lat: result.lat, lng: result.lng, tier: result.tier, unvalidated: result.unvalidated ? 1 : 0 };
+    if (!keepStreet || !highlight || highlight.kind !== "street") {
+      streetToken++;
+      highlight = { kind: "intersection", point };
+      highlightEl.replaceChildren();
+      drawHighlightLines();
+    }
+    map.setCenter({ lat: point.lat, lng: point.lng });
+    if (map.getZoom() < FOCUS_ZOOM) map.setZoom(FOCUS_ZOOM);
+    openSheet(point.id);
   }
 
   async function showPoints(mine) {
@@ -207,6 +314,7 @@ export function mountExploreView(root, ctx) {
   function closeSheet() {
     selectedId = null;
     hideSheet(sheetHost);
+    if (highlight && highlight.kind === "intersection") { highlight = null; searchBox.clear(); }
     drawPoints();
   }
   async function openSheet(id) {
@@ -216,7 +324,7 @@ export function mountExploreView(root, ctx) {
     try {
       const detail = await api.getIntersection(id);
       if (destroyed || selectedId !== id) return;
-      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet }));
+      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet, reported: Boolean(getReport(id)) }));
       const closeButton = sheet.querySelector(".sheet-close");
       if (closeButton) closeButton.focus();
     } catch (problem) {
@@ -250,9 +358,11 @@ export function mountExploreView(root, ctx) {
       },
     });
     listeners.push(map.addListener("idle", () => refresh(false)));
+    listeners.push(map.addListener("zoom_changed", () => { if (highlight) drawPoints(); })); // highlight dots grow when zoomed in
     const b = config.bounds;
-    map.fitBounds({ south: b.south, north: b.north, west: b.west, east: b.east }, 30);
+    if (!pendingPick) map.fitBounds({ south: b.south, north: b.north, west: b.west, east: b.east }, 30);
     refresh(true);
+    if (pendingPick) { const run = pendingPick; pendingPick = null; run(); }
   }).catch((problem) => {
     if (!destroyed) mapMessage.replaceChildren(h("div", { class: "banner banner-error", role: "alert" }, describeMapsError(problem)));
   });
@@ -406,7 +516,17 @@ export function mountExploreView(root, ctx) {
     historySection.hidden = view !== "history";
     if (view === "history") startHistoryMap(); else startRiskMap();
   }
+  // #/explore?id=123 (for example "Map" on the report page) opens that intersection.
+  const startId = new URLSearchParams(window.location.hash.split("?")[1] || "").get("id");
+  if (startId) memory.view = "risk";
   setView(history ? memory.view : "risk");
+  if (startId) {
+    api.getIntersection(startId).then((detail) => {
+      if (destroyed) return;
+      searchBox.input.value = detail.label;
+      pickIntersection({ id: detail.id, lat: detail.lat, lng: detail.lng, tier: detail.tierCode, unvalidated: !detail.validated });
+    }).catch((problem) => { if (!destroyed) highlightEl.replaceChildren(h("div", { class: "banner banner-error" }, problem.message)); });
+  }
 
   return {
     heading,

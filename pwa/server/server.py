@@ -46,11 +46,13 @@ from route_utils import (  # noqa: E402
     RoutingError,
     analyze_route,
     build_map_payload,
+    MAX_AVOIDED,
     compare_routes,
     fetch_routes,
     format_distance,
     format_duration,
     google_maps_directions_url,
+    mark_avoided,
     route_waypoints,
 )
 
@@ -160,12 +162,13 @@ def route_stops(risk) -> list[dict]:
                 "crossing": _optional(getattr(row, "is_crossing_tagged", None), lambda v: bool(v)),
                 "sidewalk": _label(getattr(row, "sidewalk", None)),
                 "bike": _label(getattr(row, "bike_lane", None)),
+                "reported": bool(getattr(row, "avoided", False)),
             }
         )
     return stops
 
 
-def serialize_trip(routes, risks, comparison, notices, index, origin, destination, mode_code) -> dict:
+def serialize_trip(routes, risks, comparison, notices, index, origin, destination, mode_code, avoided=()) -> dict:
     fastest = routes[comparison.fastest_idx]
     fastest_risk = risks[comparison.fastest_idx]
     cards = []
@@ -196,6 +199,7 @@ def serialize_trip(routes, risks, comparison, notices, index, origin, destinatio
                 "deltaMinutes": None if is_fastest else int(round((route.duration_s - fastest.duration_s) / 60)),
                 "deltaHigh": None if is_fastest or risk.n_high == fastest_risk.n_high else int(risk.n_high - fastest_risk.n_high),
                 "stops": route_stops(risk),
+                "reported": len(risk.avoided_ids),  # intersections the user reported that this route passes
                 # Opens this exact route (not Google's own pick) in the Google Maps app.
                 "googleMapsUrl": google_maps_directions_url(origin, destination, mode_code, route_waypoints(routes, position, index)),
             }
@@ -211,6 +215,8 @@ def serialize_trip(routes, risks, comparison, notices, index, origin, destinatio
         "map": build_map_payload(routes, risks, ROUTE_COLORS),
         "googleMapsUrl": google_maps_directions_url(origin, destination, mode_code),
         "snapshotWeek": index.snapshot_week,
+        # How many of the user's reported intersections were checked, and whether every option passes at least one.
+        "avoid": {"checked": len(avoided), "allPass": bool(avoided) and all(risk.avoided_ids for risk in risks)},
     }
 
 
@@ -304,6 +310,9 @@ def create_app(config: dict | None = None) -> Flask:
             return error("Enter both a starting point and a destination.", 400)
         if len(origin) > MAX_TEXT_LENGTH or len(destination) > MAX_TEXT_LENGTH:
             return error(f"Places must be {MAX_TEXT_LENGTH} characters or fewer.", 400)
+        avoid = body.get("avoid", [])
+        if not isinstance(avoid, list) or len(avoid) > MAX_AVOIDED or not all(isinstance(v, (str, int)) and len(str(v)) <= 32 for v in avoid):
+            return error(f"avoid must be a list of at most {MAX_AVOIDED} intersection ids.", 400)
         mode_code = TRAVEL_MODES.get(mode) or (mode if mode in TRAVEL_MODES.values() else None)
         if mode_code is None:
             return error("Travel mode must be Driving, Cycling or Walking.", 400)
@@ -319,9 +328,10 @@ def create_app(config: dict | None = None) -> Flask:
         except RoutingError as problem:
             return error(str(problem), 422)
         risks = [analyze_route(route, data.index, mode=mode_code) for route in routes]
+        avoided = mark_avoided(routes, risks, data.index, avoid)  # intersections the user reported and asked to avoid
         street_names.fill_routes(risks)  # the biggest contributors get street names instead of coordinates
         comparison = compare_routes(routes, risks)
-        return jsonify(serialize_trip(routes, risks, comparison, notices, data.index, origin, destination, mode_code))
+        return jsonify(serialize_trip(routes, risks, comparison, notices, data.index, origin, destination, mode_code, avoided))
 
     def parse_filters():
         area_arg = request.args.get("areas")
@@ -367,6 +377,29 @@ def create_app(config: dict | None = None) -> Flask:
         if south > north or west > east:
             return error("The viewport is inverted.", 400)
         return jsonify(data.points(south, north, west, east, areas, tiers, limit))
+
+    @app.get("/api/search")
+    def api_search():
+        return jsonify({"results": data.search_index.search(request.args.get("q", ""))})
+
+    @app.get("/api/street")
+    def api_street():
+        try:
+            part = int(request.args.get("part", 0))
+        except ValueError:
+            return error("part must be a number.", 400)
+        street = data.search_index.street(request.args.get("key", "")[:120], part)
+        return jsonify(street) if street else error("That street wasn't found.", 404)
+
+    @app.get("/api/nearby")
+    def api_nearby():
+        try:
+            latitude, longitude = float(request.args["lat"]), float(request.args["lng"])
+        except (KeyError, ValueError):
+            return error("lat and lng (numbers) are required.", 400)
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            return error("lat and lng are out of range.", 400)
+        return jsonify({"results": data.search_index.nearby(latitude, longitude)})
 
     @app.get("/api/history/cells")
     def api_history_cells():
