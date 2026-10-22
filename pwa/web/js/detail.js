@@ -22,7 +22,7 @@ export function tierPill(code) {
   return h("span", { class: "tier-pill" }, h("span", { class: "dot", style: `background:${TIER_COLORS[code]}`, "aria-hidden": "true" }), TIER_SHORT[code]);
 }
 
-function ordinal(n) {
+export function ordinal(n) {
   const v = n % 100;
   if (v >= 11 && v <= 13) return `${n}th`;
   return `${n}${["th", "st", "nd", "rd"][n % 10 > 3 ? 0 : n % 10]}`;
@@ -46,8 +46,8 @@ function factGroup(group) {
         item.source ? h("span", { class: "fact-source" }, item.source) : null))))));
 }
 
-/** The full panel body for one intersection, from /api/intersections/<id>. */
-export function renderIntersectionDetail(detail, { onClose } = {}) {
+/** The full panel body for one intersection, from /api/intersections/<id>. `reported` says the visitor reported it. */
+export function renderIntersectionDetail(detail, { onClose, reported = false } = {}) {
   const close = onClose ? h("button", { type: "button", class: "btn btn-small btn-ghost sheet-close", onclick: onClose, "aria-label": "Close details" }, icon("close", 18)) : null;
   const index = riskIndexText(detail);
   return h("div", { class: "detail" },
@@ -56,6 +56,8 @@ export function renderIntersectionDetail(detail, { onClose } = {}) {
       tierPill(detail.tierCode),
       h("span", { class: "muted" }, `${ordinal(detail.percentile)} percentile among nearby intersections in ${detail.area}${detail.validated ? "" : " (unvalidated)"}`)),
     index ? h("p", { class: "detail-index" }, index) : null,
+    h("a", { class: "btn btn-small btn-ghost detail-report", href: `#/report?id=${encodeURIComponent(detail.id)}` },
+      icon("flag", 16), reported ? "You reported this · edit or send" : "Report this intersection as dangerous"),
     detail.note ? h("div", { class: "banner banner-warn" }, detail.note.replaceAll("**", "")) : null,
     (detail.facts || []).map(factGroup),
     detail.signals && detail.signals.length ? h("section", { class: "fact-group" }, h("h4", {}, "What stands out"),

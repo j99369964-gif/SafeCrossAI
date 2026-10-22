@@ -49,6 +49,14 @@ const ICONS = {
   users: [["circle", { cx: 9, cy: 8, r: 3 }], ["path", { d: "M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 14a5 5 0 0 1 3 5" }]],
   lock: [["rect", { x: 5, y: 11, width: 14, height: 9, rx: 2 }], ["path", { d: "M8 11V8a4 4 0 0 1 8 0v3" }]],
   flag: [["path", { d: "M5 21V4M5 4h11l-2 4 2 4H5" }]],
+  check: [["path", { d: "m5 12.5 4.5 4.5L19 7.5" }]],
+  search: [["circle", { cx: 10.5, cy: 10.5, r: 6 }], ["path", { d: "m15 15 5 5" }]],
+  road: [["path", { d: "M8 3 4 21M16 3l4 18M12 4v3M12 10.5v3M12 17v3" }]],
+  trash: [["path", { d: "M4.5 7h15M10 4h4M6.5 7l1 13h9l1-13M10 11v6M14 11v6" }]],
+  copy: [["rect", { x: 8, y: 8, width: 12, height: 12, rx: 2 }], ["path", { d: "M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" }]],
+  share: [["circle", { cx: 6, cy: 12, r: 2.5 }], ["circle", { cx: 18, cy: 6, r: 2.5 }], ["circle", { cx: 18, cy: 18, r: 2.5 }], ["path", { d: "m8.3 10.8 7.4-3.6M8.3 13.2l7.4 3.6" }]],
+  phone: [["path", { d: "M5 4h3.5l1.5 4.5-2.2 1.4a11 11 0 0 0 6.3 6.3l1.4-2.2L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z" }]],
+  mail: [["rect", { x: 3.5, y: 5.5, width: 17, height: 13, rx: 2 }], ["path", { d: "m4 7 8 6 8-6" }]],
 };
 
 export function icon(name, size = 20) {

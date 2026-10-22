@@ -72,6 +72,10 @@ DENSIFY_SPACING_M = 8.0
 PROXIMITY_SIGMA_M = PASS_RADIUS_M / 2
 HOT_INDEX = 3.0  # an intersection at least this many times riskier than the average one counts as a "hot spot"
 MEANINGFUL_DIFFERENCE = 0.05  # routes whose scores differ by less than 5% are treated as equal
+# An intersection the user reported (and asked to avoid) counts as passed when the route comes this close to its centre.
+# A bit wider than PASS_RADIUS_M so a big or divided intersection is caught from any of its approaches.
+AVOID_RADIUS_M = 40.0
+MAX_AVOIDED = 50
 VULNERABLE_HISTORY_COLUMN = {"WALK": "pedestrian_casualty_crashes_last_8w", "BICYCLE": "cyclist_casualty_crashes_last_8w"}
 SPEED_BUMPS_MPH = ((35.0, 0.35), (26.0, 0.15))  # (at or above this speed, add this much), checked in order
 HISTORY_BUMP_PER_CRASH = 0.25
@@ -237,6 +241,7 @@ class RouteRisk:
     mean_index: float = 0.0  # average risk_index of the intersections passed (1.0 = an average intersection)
     n_hot: int = 0  # intersections passed with risk_index >= HOT_INDEX
     top_share: float = 0.0  # share of the score that comes from the three biggest contributors
+    avoided_ids: list = field(default_factory=list)  # intersections the user reported that this route passes
 
     @property
     def n_high_or_elevated(self) -> int:
@@ -300,6 +305,29 @@ def analyze_route(
         n_hot=int((passed["risk_index"] >= HOT_INDEX).sum()) if len(passed) else 0,
         top_share=(top3 / score) if score > 0 else 0.0,
     )
+
+
+def mark_avoided(routes: list[Route], risks: list[RouteRisk], index: IntersectionIndex, avoid_ids) -> list[str]:
+    """Fills `avoided_ids` on every RouteRisk with the reported intersections (node ids in `index`) the route passes
+    within AVOID_RADIUS_M, and adds a boolean `avoided` column to `passed`. Returns the ids that were found in the index."""
+    wanted = list(dict.fromkeys(str(n) for n in (avoid_ids or [])))[:MAX_AVOIDED]
+    if not wanted or "node_id" not in index.frame.columns:
+        for risk in risks:
+            risk.passed = risk.passed.assign(avoided=False)
+        return []
+    ids = index.frame["node_id"].astype(str)
+    rows = index.frame.index[ids.isin(wanted)].to_numpy()
+    known = ids.iloc[rows].tolist()
+    for route, risk in zip(routes, risks):
+        risk.avoided_ids = []
+        if len(rows):
+            dense, _ = densify(index.project(route.points[:, 0], route.points[:, 1]), DENSIFY_SPACING_M)
+            if len(dense):
+                distances, _ = cKDTree(dense).query(index.xy[rows], distance_upper_bound=AVOID_RADIUS_M)
+                risk.avoided_ids = [node for node, distance in zip(known, distances) if np.isfinite(distance)]
+        node_ids = risk.passed["node_id"].astype(str) if "node_id" in risk.passed.columns else pd.Series(dtype=str)
+        risk.passed = risk.passed.assign(avoided=node_ids.isin(risk.avoided_ids).to_numpy() if len(node_ids) else False)
+    return known
 
 
 def vulnerability_multiplier(passed: pd.DataFrame, mode: str) -> np.ndarray:
@@ -366,7 +394,38 @@ def format_minutes_delta(seconds: float) -> str:
 
 def compare_routes(routes: list[Route], risks: list[RouteRisk]) -> Comparison:
     """Pick the fastest route and the one with the lowest risk SCORE (ties go to the faster route) and describe the
-    trade-off in one sentence. Scores that differ by less than MEANINGFUL_DIFFERENCE are treated as equal."""
+    trade-off in one sentence. Scores that differ by less than MEANINGFUL_DIFFERENCE are treated as equal.
+    Intersections the user reported come first: if some options pass fewer of them, only those can be recommended."""
+    reported = [len(risk.avoided_ids) for risk in risks]
+    if min(reported) < max(reported):
+        keep = [i for i in range(len(routes)) if reported[i] == min(reported)]
+        inner = compare_routes([routes[i] for i in keep], [risks[i] for i in keep])
+        pick = keep[inner.recommended_idx]
+        fastest = min(range(len(routes)), key=lambda i: routes[i].duration_s)
+        badges: dict[int, list[str]] = {i: [] for i in range(len(routes))}
+        badges[fastest].append("Fastest")
+        for position, badge_list in inner.badges.items():
+            badges[keep[position]] += [b for b in badge_list if b != "Fastest" and b not in badges[keep[position]]]
+        what = "the intersection you reported" if max(reported) == 1 else "the intersections you reported"
+        if min(reported) == 0:
+            for i in keep:
+                badges[i].insert(0, "Avoids your reports")
+            verb = f"avoids {what}"
+        else:
+            verb = f"passes the fewest of {what}"
+        extra = routes[pick].duration_s - routes[fastest].duration_s
+        if pick == fastest:
+            time_part = "and is also the fastest option"
+        elif round(extra / 60) >= 1:
+            time_part = f"and takes **{format_duration(extra)} longer** than the fastest route ({routes[fastest].label})"
+        else:
+            time_part = "and takes about the same time as the fastest route"
+        headline = f"**{routes[pick].label}** {verb} {time_part}. Its risk score is {risks[pick].score:.1f}."
+        safest = keep[inner.safest_idx]
+        return Comparison(
+            fastest_idx=fastest, safest_idx=safest, recommended_idx=pick, counts_differ=True, badges=badges, headline=headline,
+        )
+
     fastest = min(range(len(routes)), key=lambda i: routes[i].duration_s)
     safest = min(range(len(routes)), key=lambda i: (round(risks[i].score, 6), routes[i].duration_s))
     top, low = max(r.score for r in risks), min(r.score for r in risks)

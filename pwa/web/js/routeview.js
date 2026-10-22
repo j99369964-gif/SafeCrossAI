@@ -3,6 +3,7 @@ import { h, boldParts, icon, pageHeader, countUp } from "./dom.js";
 import * as api from "./api.js";
 import { mountSharedMap, onMapsAuthFailure, describeMapsError } from "./gmaps.js";
 import { createTripMap } from "./routemap.js";
+import { avoidIds, getReport } from "./reports.js";
 import { TIER_COLORS, TIER_NAMES, TIER_SHORT, splitStreets, tierPill, renderIntersectionDetail, renderIntersectionSummary, summaryMessage, loadingBody, errorBody, showSheet, hideSheet } from "./detail.js";
 
 export const EXAMPLE_TRIP = { from: "Columbus Circle, New York, NY", to: "Barclays Center, Brooklyn, NY", mode: "Driving" };
@@ -70,6 +71,11 @@ export function mountRouteView(root, ctx) {
   const status = h("div", { role: "status", "aria-live": "polite", class: "muted status-line" });
   const errorBox = h("div", { role: "alert" });
   const resultsEl = h("div", { id: "results", class: "results" });
+  const avoiding = avoidIds().length;
+  const avoidNote = avoiding
+    ? h("p", { class: "form-hint avoid-hint" }, icon("flag", 16),
+      `Steering around ${avoiding} intersection${avoiding === 1 ? "" : "s"} you reported. `, h("a", { href: "#/report" }, "Manage reports"))
+    : h("p", { class: "form-hint avoid-hint" }, "Know an intersection that feels dangerous? ", h("a", { href: "#/report" }, "Report it"), " and routes will steer around it.");
 
   // A start ring and a destination diamond joined by a dashed line (see .trip-form in styles.css).
   const form = h("form", { class: "card trip-form", novalidate: true, onsubmit: (event) => { event.preventDefault(); search(); } },
@@ -81,7 +87,8 @@ export function mountRouteView(root, ctx) {
     modeGroup,
     h("div", { class: "btn-row" }, submitButton, exampleButton),
     h("p", { class: "form-hint" },
-      "Places are assumed to be in New York (the city or Westchester County) unless you include another place name."));
+      "Places are assumed to be in New York (the city or Westchester County) unless you include another place name."),
+    avoidNote);
   page.append(form, status, errorBox, resultsEl);
 
   const currentMode = () => (modeRadios.find((radio) => radio.checked) || modeRadios[0]).value;
@@ -131,7 +138,7 @@ export function mountRouteView(root, ctx) {
     hideSheet(sheetHost);
     resultsEl.replaceChildren(resultsSkeleton());
     try {
-      const trip = await api.findRoutes({ origin, destination, mode: memory.form.mode });
+      const trip = await api.findRoutes({ origin, destination, mode: memory.form.mode, avoid: avoidIds() });
       if (destroyed) return;
       memory.trip = trip;
       memory.selected = trip.recommended;
@@ -220,12 +227,14 @@ export function mountRouteView(root, ctx) {
         : h("div", { class: `delta${route.scoreChangePct < 0 ? " good" : ""}` }, `${route.scoreChangePct > 0 ? "+" : ""}${route.scoreChangePct}%`);
       const caption = [route.distanceText, `${route.nIntersections} intersections`, route.nHot ? `${route.nHot} hot spot${route.nHot === 1 ? "" : "s"}` : "no hot spots", `${route.nHigh} high-risk`];
       if (route.nUnvalidated) caption.push(`${route.nUnvalidated} in an unvalidated area`);
+      const reportedBadge = route.reported
+        ? h("span", { class: "badge badge-warn" }, `Passes ${route.reported} you reported`) : null;
       const scoreValue = h("div", { class: "metric-value" });
       countUp(scoreValue, route.score, 1, 800 + index * 120);
       // The whole card is clickable; the button inside is the keyboard and screen-reader route to the same action.
       return h("article", { class: "card route-card", "aria-label": route.label, style: `--i:${index};--route-color:${route.color}`, onclick: () => select(index) },
         h("h3", {}, route.label),
-        h("div", { class: "badges" }, route.badges.map((badge) => h("span", { class: "badge" }, badge))),
+        h("div", { class: "badges" }, route.badges.map((badge) => h("span", { class: "badge" }, badge)), reportedBadge),
         h("div", { class: "metrics" },
           h("div", {}, h("div", { class: "metric-label" }, "Travel time"), h("div", { class: "metric-value" }, route.durationText), timeDelta),
           h("div", {}, h("div", { class: "metric-label" }, "Risk score"), scoreValue, scoreDelta)),
@@ -312,6 +321,7 @@ export function mountRouteView(root, ctx) {
           h("span", { class: "mini-chip" }, sidewalkText[stop.sidewalk] || sidewalkText.unknown),
           memory.trip.mode === "BICYCLE" && bikeText[stop.bike] ? h("span", { class: "mini-chip" }, bikeText[stop.bike]) : null,
           stop.unvalidated ? h("span", { class: "mini-chip warn" }, "Unvalidated") : null,
+          stop.reported ? h("span", { class: "mini-chip warn" }, icon("flag", 14), "You reported this") : null,
         ];
         const selected = memory.node === stop.id;
         return h("li", { style: `--i:${Math.min(i, 16)}` }, h("button", { type: "button", class: `stop${selected ? " selected" : ""}`, dataset: { id: String(stop.id) }, onclick: () => openNode(stop.id, true), "aria-label": `${stop.label}, ${TIER_SHORT[stop.tier]}, ${stop.share}% of the score` },
@@ -392,7 +402,7 @@ export function mountRouteView(root, ctx) {
     try {
       const detail = await api.getIntersection(id);
       if (destroyed || mine !== detailToken) return;
-      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet }));
+      const sheet = showSheet(sheetHost, renderIntersectionDetail(detail, { onClose: closeSheet, reported: Boolean(getReport(id)) }));
       const closeButton = sheet.querySelector(".sheet-close");
       if (closeButton) closeButton.focus({ preventScroll: true });
     } catch (problem) {
@@ -423,6 +433,11 @@ export function mountRouteView(root, ctx) {
       pieces.push(h("div", { class: "banner banner-warn", role: "alert" },
         h("strong", {}, "Part of this trip is in Westchester County, where rankings are unvalidated estimates."),
         " There is no crash history there, so Westchester intersections are ranked on road design alone, against each other rather than against New York City. Treat Westchester scores as a rough guide only."));
+    }
+    if (trip.avoid && trip.avoid.allPass) {
+      pieces.push(h("div", { class: "banner banner-warn", role: "alert" },
+        h("strong", {}, "Every route option passes an intersection you reported."),
+        " SafeCross can only choose among the routes Google suggests, and Google can't be told to skip one intersection. Try a nearby start or destination, or another travel mode."));
     }
     if (trip.mode === "WALK" || trip.mode === "BICYCLE") {
       const who = trip.mode === "WALK" ? "pedestrian" : "cyclist";
