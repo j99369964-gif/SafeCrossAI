@@ -56,7 +56,7 @@ from route_utils import (  # noqa: E402
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 ROUTE_COLORS = ["#1a73e8", "#e8710a", "#188038", "#9334e6"]
 MAX_TEXT_LENGTH = 200
-VERSION = "1.0.0"
+VERSION = "1.1.0"  # shown on the About page; bump on each deploy
 
 
 # =============================================================================

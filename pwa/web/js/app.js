@@ -72,6 +72,8 @@ function renderAbout(root) {
   const placeholder = !contact || /example\.com$/i.test(contact);
   root.querySelector("[data-contact]").textContent = contact || "your-email@example.com";
   if (!placeholder) root.querySelector("#legal-draft").hidden = true;
+  const version = state.config && state.config.version;
+  if (version) Object.assign(root.querySelector("[data-version]"), { textContent: `Version ${version}`, hidden: false });
 
   const modelInfo = root.querySelector("#model-info");
   api.getModelInfo().then((info) => {
