@@ -47,3 +47,6 @@ export const explorePoints = (params) => request(`/api/explore/points?${query(pa
 export const getIntersection = (id) => request(`/api/intersections/${encodeURIComponent(id)}`);
 export const getModelInfo = () => request("/api/model");
 export const historyCells = (period) => request(`/api/history/cells?${query(period)}`);
+export const search = (q) => request(`/api/search?${query({ q })}`);
+export const getStreet = (key, part) => request(`/api/street?${query({ key, part })}`);
+export const nearby = (lat, lng) => request(`/api/nearby?${query({ lat, lng })}`);

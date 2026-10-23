@@ -52,6 +52,22 @@ model's predicted risk divided by the area average. For walking and cycling, vul
 speed and with recent pedestrian or cyclist casualty crashes. The weights are judgement calls, not fitted values.
 The route with the lowest score is recommended, and routes within 5% of each other are treated as equal.
 
+Intersections are named from `data/sample/intersection_info.csv`. When that file has no name for one of the
+intersections that add the most to a route's score, the app asks OpenStreetMap (Overpass API, no key needed) which
+streets meet at that node and shows them instead of coordinates (`app/street_names.py`). Set `STREET_NAME_LOOKUP=0`
+to turn this off on the web server.
+
+## Search and reports (web app)
+
+- **Search** on the Explore map: type a street ("Broadway") to highlight it, with its intersections and the riskiest
+  ones listed, or two streets ("Broadway & W 42nd St") to open that intersection's details. Abbreviations and ordinals
+  are understood ("W", "St", "Ave", "42nd"). Built in `pwa/server/search.py`; endpoints `/api/search` and `/api/street`.
+- **Report a dangerous intersection** (`#/report`): pick one near you or by search, say what's wrong, and the app
+  prepares a report to send to NYC 311 (or, in Westchester, the town, county or state road owner). SafeCross doesn't
+  send it for you. Reports stay on the device; the ones marked "avoid" are sent with each route search, and a route
+  that passes one isn't recommended when another option doesn't (Google can't be told to skip a single intersection,
+  so this chooses among the options Google returns).
+
 ## Westchester
 
 The model is trained on NYC. Westchester results are a transfer test and are not validated. See

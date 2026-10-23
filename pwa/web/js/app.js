@@ -5,6 +5,7 @@ import * as api from "./api.js";
 import { mountHomeView } from "./homeview.js";
 import { mountRouteView } from "./routeview.js";
 import { mountExploreView } from "./exploreview.js";
+import { mountReportView } from "./reportview.js";
 import { openTour, shouldAutoOpen } from "./onboarding.js";
 import { initInstall } from "./install.js";
 
@@ -92,6 +93,7 @@ const PAGES = {
   home: { title: "Home", mount: (root) => mountHomeView(root) },
   route: { title: "Plan a safer route", mount: (root, ctx) => mountRouteView(root, ctx) },
   explore: { title: "Explore the risk map", mount: (root, ctx) => mountExploreView(root, ctx) },
+  report: { title: "Report a dangerous intersection", mount: (root) => mountReportView(root) },
   about: { title: "About", mount: (root) => renderAbout(root) },
 };
 

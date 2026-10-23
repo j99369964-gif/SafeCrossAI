@@ -21,6 +21,7 @@ sys.path.insert(0, str(REPO_ROOT_DEFAULT / "app"))
 
 import safecross_core as core  # noqa: E402
 from route_utils import IntersectionIndex  # noqa: E402
+from search import SearchIndex  # noqa: E402
 
 TIER_ORDER = [
     "Highest-priority (top 10%)",
@@ -82,6 +83,8 @@ class SafeCrossData:
         self.area_code = self.frame["region"].map({k: i for i, k in enumerate(self.area_keys)}).to_numpy(int)
         self.node_ids = self.frame["node_id"].astype(str).to_numpy()
         self.id_to_row = {node_id: i for i, node_id in enumerate(self.node_ids)}
+        # Street / intersection search for the Explore map (shares row positions with self.frame).
+        self.search_index = SearchIndex(self.frame, self.tier_code, self.unvalidated, self.index.project)
         self.areas = [
             {
                 "key": key,

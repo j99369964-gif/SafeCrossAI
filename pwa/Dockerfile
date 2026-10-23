@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r /srv/pwa/requirements.txt
 
 # The server shares the Streamlit app's Streamlit-free modules (app/safecross_core.py, app/route_utils.py)
 # and loads the trained model bundle and the demo data at start-up.
-COPY app/safecross_core.py app/route_utils.py /srv/app/
+COPY app/safecross_core.py app/route_utils.py app/street_names.py /srv/app/
 COPY pwa/server /srv/pwa/server
 COPY pwa/web /srv/pwa/web
 COPY models /srv/models
